@@ -23,9 +23,9 @@ struct RootView: View {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
 
-            TrainingGoalsView()
+            SettingsView()
                 .tabItem {
-                    Label("Goals", systemImage: "scope")
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
     }
