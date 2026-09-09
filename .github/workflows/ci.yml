@@ -16,6 +16,15 @@ jobs:
       - name: Run TrainingEngine tests
         run: swift test
 
+      - name: Validate beta release metadata
+        run: |
+          plutil -lint App/PrivacyInfo.xcprivacy
+          grep -Eq 'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"' project.yml
+          grep -Eq 'CURRENT_PROJECT_VERSION: "[0-9]+"' project.yml
+          grep -q 'FITOS_CLOUD_ACCOUNTS_ENABLED: "NO"' project.yml
+          grep -q 'NSPrivacyAccessedAPICategoryUserDefaults' App/PrivacyInfo.xcprivacy
+          grep -q 'CA92.1' App/PrivacyInfo.xcprivacy
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
