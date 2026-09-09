@@ -26,12 +26,12 @@ final class AppStore: ObservableObject {
     init(
         persistence: WorkoutPersistence = WorkoutPersistence(),
         profilePersistence: ProfilePersistence = ProfilePersistence(),
-        healthKitService: HealthKitService = HealthKitService(),
+        healthKitService: HealthKitService? = nil,
         userDefaults: UserDefaults = .standard
     ) {
         self.workoutPersistence = persistence
         self.profilePersistence = profilePersistence
-        self.healthKitService = healthKitService
+        self.healthKitService = healthKitService ?? HealthKitService()
         self.userDefaults = userDefaults
         self.sessions = persistence.load()
         let profile = profilePersistence.load(defaultTargets: DefaultTargets.all)
