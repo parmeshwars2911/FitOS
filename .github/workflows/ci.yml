@@ -1,0 +1,33 @@
+name: FitOS CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run TrainingEngine tests
+        run: swift test
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild \
+            -project FitOS.xcodeproj \
+            -scheme FitOS \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

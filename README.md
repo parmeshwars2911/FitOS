@@ -1,49 +1,69 @@
 # FitOS
 
-An iOS-first adaptive strength-training platform that answers one question exceptionally well:
+**FitOS is an adaptive fitness operating system for iPhone.** It tracks what you actually trained, estimates muscle-level training debt and recovery, and builds the next workout around what your program is missing.
 
-> **What should I train today, based on what I actually did?**
+The product principle is **math first, LLM second**: deterministic code owns training calculations; AI will later interpret those results, explain recommendations and provide a natural-language interface.
 
-Instead of assuming the user followed a fixed Push/Pull/Legs calendar, FitOS maintains a rolling training state across muscle stimulus, training debt, recovery, goals, available time, and later nutrition/body trends. It then builds the next session around the user's real history.
+## What exists today
 
-## Product wedge
+- Swift `TrainingEngine` package
+- rolling 7-day effective-set tracking
+- compound-exercise muscle contribution model
+- recovery + training-debt priority scoring
+- adaptive **Train Today** workout generator
+- SwiftUI Today dashboard
+- workout logger for sets, reps, load and RIR
+- starter strength-training exercise catalog
+- local on-device workout persistence
+- workout history
+- automated engine tests for missed-muscle rebalancing
 
-- Fast workout logging
-- Compound-exercise stimulus split across primary and secondary muscles
-- Rolling 7-day training debt per muscle
-- Recovery gating
-- Dynamic **Train Today** workout generation
-- Progressive overload and later deload logic
-- Body weight / circumference trends
-- Apple Health integration
-- AI explanations on top of deterministic calculations
-- MCP/API layer so users can connect the AI assistant of their choice
+## Run the iOS app
 
-## Architecture principle
+The repository uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) so the Xcode project is generated from the checked-in `project.yml` instead of committing a large `.xcodeproj` file.
 
-**Math first, LLM second.**
+```bash
+brew install xcodegen
+xcodegen generate
+open FitOS.xcodeproj
+```
 
-The training engine calculates volume, effective stimulus, recovery, deficits, and priorities deterministically. AI interprets that structured state, explains recommendations, and handles natural language. It does not invent the underlying numbers.
+Choose an iPhone simulator in Xcode and run the `FitOS` scheme.
 
-## Repository status
-
-The first implementation slice is a Swift package containing the deterministic Training State Engine and workout generator. This makes the core logic unit-testable before the SwiftUI shell is built.
+## Run the engine tests
 
 ```bash
 swift test
 ```
 
-## Initial milestones
+## Current product loop
 
-1. Training State Engine ✅
-2. Adaptive workout generation ✅ foundation
-3. Exercise catalog + muscle mappings
-4. SwiftUI workout logger
-5. Local persistence (SwiftData)
-6. Supabase sync/auth
-7. Body metrics + Apple Health
-8. AI coaching layer
-9. MCP/API
-10. TestFlight beta
+```text
+Completed workout history
+        ↓
+TrainingStateEngine
+        ↓
+muscle volume + recovery + training debt
+        ↓
+WorkoutGenerator
+        ↓
+Build Today's Workout
+        ↓
+log what was actually completed
+        ↓
+local persistence
+        ↺
+```
 
-See `docs/ARCHITECTURE.md` and `docs/MVP.md`.
+## Next milestones
+
+1. prove the adaptive workout loop with simulator/TestFlight users
+2. add editable goals and weekly muscle-volume targets
+3. add bodyweight and measurement tracking
+4. HealthKit read/write integration
+5. cloud account + sync
+6. AI explanations and weekly review
+7. MCP/API access
+8. subscriptions
+
+See `docs/ARCHITECTURE.md`, `docs/MVP.md`, and `docs/APP_CORE_LOOP.md` for the product and technical direction.

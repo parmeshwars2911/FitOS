@@ -98,7 +98,9 @@ public struct WorkoutGenerator: Sendable {
             .filter { $0.priorityScore > 0.25 }
             .prefix(4)
             .map { muscle in
-                "\(muscle.muscle.rawValue): \(String(format: \"%.1f\", muscle.effectiveSets))/\(String(format: \"%.1f\", muscle.targetSets)) effective sets, \(Int(muscle.recovery * 100))% recovered."
+                let completed = String(format: "%.1f", muscle.effectiveSets)
+                let target = String(format: "%.1f", muscle.targetSets)
+                return "\(muscle.muscle.rawValue): \(completed)/\(target) effective sets, \(Int(muscle.recovery * 100))% recovered."
             }
 
         return GeneratedWorkout(
