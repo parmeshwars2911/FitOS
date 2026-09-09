@@ -32,6 +32,7 @@ final class AppStore: ObservableObject {
     private let planAdherenceEngine = WorkoutPlanAdherenceEngine()
     private let strengthProgressionEngine = StrengthProgressionEngine()
     private let healthKitEnabledKey = "fitos-healthkit-enabled"
+    private let exercisePreferenceKey = "fitos-exercise-preferences-v1"
 
     init(
         persistence: WorkoutPersistence = WorkoutPersistence(),
@@ -83,6 +84,31 @@ final class AppStore: ObservableObject {
         return values.reduce(0, +) / Double(values.count)
     }
 
+    var exercisePreferences: [String: ExercisePreference] {
+        guard let data = userDefaults.data(forKey: exercisePreferenceKey),
+              let decoded = try? JSONDecoder().decode([String: ExercisePreference].self, from: data)
+        else { return [:] }
+        return decoded
+    }
+
+    func exercisePreference(for exerciseID: String) -> ExercisePreference {
+        exercisePreferences[exerciseID] ?? .neutral
+    }
+
+    func setExercisePreference(_ preference: ExercisePreference, for exerciseID: String) {
+        var preferences = exercisePreferences
+        if preference == .neutral {
+            preferences.removeValue(forKey: exerciseID)
+        } else {
+            preferences[exerciseID] = preference
+        }
+
+        if let data = try? JSONEncoder().encode(preferences) {
+            userDefaults.set(data, forKey: exercisePreferenceKey)
+        }
+        generatedWorkout = nil
+    }
+
     func generateWorkout(durationMinutes: Int = 60, availableEquipment: Set<String> = []) {
         let constraints = WorkoutConstraint(
             durationMinutes: durationMinutes,
@@ -92,7 +118,8 @@ final class AppStore: ObservableObject {
             from: trainingState,
             exerciseLibrary: catalog,
             constraints: constraints,
-            exerciseHistory: sessions
+            exerciseHistory: sessions,
+            exercisePreferences: exercisePreferences
         )
     }
 

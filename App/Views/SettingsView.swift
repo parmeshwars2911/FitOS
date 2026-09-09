@@ -10,6 +10,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Training goals", systemImage: "scope")
                     }
+
+                    NavigationLink {
+                        ExercisePreferencesView()
+                    } label: {
+                        Label("Exercise preferences", systemImage: "slider.horizontal.3")
+                    }
                 }
 
                 Section("Data") {

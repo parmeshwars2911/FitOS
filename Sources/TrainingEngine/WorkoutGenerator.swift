@@ -8,10 +8,12 @@ public struct WorkoutGenerator: Sendable {
         exerciseLibrary: [ExerciseDefinition],
         constraints: WorkoutConstraint = WorkoutConstraint(),
         exerciseHistory: [WorkoutSession] = [],
+        exercisePreferences: [String: ExercisePreference] = [:],
         maxExercises: Int = 7
     ) -> GeneratedWorkout {
         let candidates = exerciseLibrary.filter { exercise in
             guard !constraints.excludedExercises.contains(exercise.id) else { return false }
+            guard exercisePreferences[exercise.id] != .avoid else { return false }
             return constraints.availableEquipment.isEmpty || constraints.availableEquipment.contains(exercise.equipment)
         }
 
@@ -34,7 +36,8 @@ public struct WorkoutGenerator: Sendable {
             }
             let best = contributions.max { $0.0 < $1.0 }
             let aggregate = contributions.reduce(0.0) { $0 + $1.0 }
-            let fatigueAdjusted = aggregate / max(0.5, exercise.fatigueCost)
+            let preferenceMultiplier = exercisePreferences[exercise.id] == .prefer ? 1.15 : 1.0
+            let fatigueAdjusted = (aggregate / max(0.5, exercise.fatigueCost)) * preferenceMultiplier
             return (exercise, fatigueAdjusted, best?.1)
         }
         .filter { $0.1 > 0.05 }
