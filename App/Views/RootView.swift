@@ -8,9 +8,19 @@ struct RootView: View {
                     Label("Today", systemImage: "bolt.heart.fill")
                 }
 
+            BodyProgressView()
+                .tabItem {
+                    Label("Progress", systemImage: "chart.xyaxis.line")
+                }
+
             HistoryView()
                 .tabItem {
                     Label("History", systemImage: "clock.arrow.circlepath")
+                }
+
+            TrainingGoalsView()
+                .tabItem {
+                    Label("Goals", systemImage: "scope")
                 }
         }
     }
