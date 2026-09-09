@@ -59,9 +59,7 @@ final class AppStore: ObservableObject {
         self.generatedWorkout = nil
     }
 
-    var healthKitAvailable: Bool {
-        healthKitService.isAvailable
-    }
+    var healthKitAvailable: Bool { healthKitService.isAvailable }
 
     var trainingState: TrainingState {
         engine.evaluate(sessions: sessions, targets: targets)
@@ -77,9 +75,7 @@ final class AppStore: ObservableObject {
         )
     }
 
-    var weeklyReview: WeeklyReview {
-        weeklyReviewEngine.review(context: coachContext)
-    }
+    var weeklyReview: WeeklyReview { weeklyReviewEngine.review(context: coachContext) }
 
     var generatedExerciseAcceptanceRate: Double? {
         let values = planAdherenceRecords.compactMap(\.acceptanceRatio)
@@ -87,8 +83,11 @@ final class AppStore: ObservableObject {
         return values.reduce(0, +) / Double(values.count)
     }
 
-    func generateWorkout(durationMinutes: Int = 60) {
-        let constraints = WorkoutConstraint(durationMinutes: durationMinutes)
+    func generateWorkout(durationMinutes: Int = 60, availableEquipment: Set<String> = []) {
+        let constraints = WorkoutConstraint(
+            durationMinutes: durationMinutes,
+            availableEquipment: availableEquipment
+        )
         generatedWorkout = generator.generate(
             from: trainingState,
             exerciseLibrary: catalog,
@@ -97,11 +96,7 @@ final class AppStore: ObservableObject {
         )
     }
 
-    func complete(
-        _ session: WorkoutSession,
-        plannedExerciseIDs: [String] = [],
-        outcomes: [WorkoutPlanOutcome] = []
-    ) {
+    func complete(_ session: WorkoutSession, plannedExerciseIDs: [String] = [], outcomes: [WorkoutPlanOutcome] = []) {
         sessions.append(session)
         sessions.sort { $0.completedAt > $1.completedAt }
         workoutPersistence.save(sessions)
@@ -130,10 +125,7 @@ final class AppStore: ObservableObject {
         return nil
     }
 
-    func progressionRecommendation(
-        for exerciseID: String,
-        repRange: ClosedRange<Int> = 8...12
-    ) -> ProgressionRecommendation? {
+    func progressionRecommendation(for exerciseID: String, repRange: ClosedRange<Int> = 8...12) -> ProgressionRecommendation? {
         guard let previous = previousPerformance(for: exerciseID)?.exercise else { return nil }
         return strengthProgressionEngine.recommend(previous: previous, repRange: repRange)
     }
@@ -145,26 +137,18 @@ final class AppStore: ObservableObject {
     func recentStrengthTrends(limit: Int = 5) -> [ExerciseStrengthTrend] {
         var seen = Set<String>()
         var trends: [ExerciseStrengthTrend] = []
-
         for session in sessions.sorted(by: { $0.completedAt > $1.completedAt }) {
             for exercise in session.exercises where seen.insert(exercise.exercise.id).inserted {
-                if let trend = strengthTrend(for: exercise.exercise.id) {
-                    trends.append(trend)
-                }
+                if let trend = strengthTrend(for: exercise.exercise.id) { trends.append(trend) }
             }
             if trends.count >= limit { break }
         }
-
         return Array(trends.prefix(limit))
     }
 
     func deleteSessions(at offsets: IndexSet) {
-        let deletedIDs = Set(offsets.compactMap { index in
-            sessions.indices.contains(index) ? sessions[index].id : nil
-        })
-        for index in offsets.sorted(by: >) where sessions.indices.contains(index) {
-            sessions.remove(at: index)
-        }
+        let deletedIDs = Set(offsets.compactMap { index in sessions.indices.contains(index) ? sessions[index].id : nil })
+        for index in offsets.sorted(by: >) where sessions.indices.contains(index) { sessions.remove(at: index) }
         planAdherenceRecords.removeAll { deletedIDs.contains($0.workoutSessionID) }
         workoutPersistence.save(sessions)
         planAdherencePersistence.save(planAdherenceRecords)
@@ -177,16 +161,13 @@ final class AppStore: ObservableObject {
             return BodyMeasurement(kind: kind, value: value, recordedAt: date, source: .manual)
         }
         guard !newMeasurements.isEmpty else { return }
-
         measurements.append(contentsOf: newMeasurements)
         measurements.sort { $0.recordedAt > $1.recordedAt }
         saveProfile()
     }
 
     func latestMeasurement(for kind: BodyMetricKind) -> BodyMeasurement? {
-        measurements
-            .filter { $0.kind == kind }
-            .max { $0.recordedAt < $1.recordedAt }
+        measurements.filter { $0.kind == kind }.max { $0.recordedAt < $1.recordedAt }
     }
 
     func trend(for kind: BodyMetricKind, windowDays: Double? = nil) -> BodyMetricTrend? {
@@ -219,9 +200,7 @@ final class AppStore: ObservableObject {
     func nutritionEntries(for date: Date, calendar: Calendar = .current) -> [NutritionEntry] {
         let start = calendar.startOfDay(for: date)
         let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86_400)
-        return nutritionEntries
-            .filter { $0.recordedAt >= start && $0.recordedAt < end }
-            .sorted { $0.recordedAt > $1.recordedAt }
+        return nutritionEntries.filter { $0.recordedAt >= start && $0.recordedAt < end }.sorted { $0.recordedAt > $1.recordedAt }
     }
 
     func addNutritionEntry(_ entry: NutritionEntry) {
@@ -242,7 +221,6 @@ final class AppStore: ObservableObject {
 
     func restoreFromCloud(_ snapshot: CloudStateSnapshot) throws {
         try snapshot.validate()
-
         sessions = snapshot.sessions.sorted { $0.completedAt > $1.completedAt }
         measurements = snapshot.measurements.sorted { $0.recordedAt > $1.recordedAt }
         targets = snapshot.muscleTargets
@@ -250,7 +228,6 @@ final class AppStore: ObservableObject {
         nutritionTarget = snapshot.nutritionTarget
         planAdherenceRecords = []
         generatedWorkout = nil
-
         workoutPersistence.save(sessions)
         saveProfile()
         saveNutrition()
@@ -263,15 +240,12 @@ final class AppStore: ObservableObject {
             healthKitError = "Apple Health is not available on this device."
             return
         }
-
         do {
             try await healthKitService.requestAuthorization()
             healthKitEnabled = true
             userDefaults.set(true, forKey: healthKitEnabledKey)
             await syncHealthKit()
-        } catch {
-            healthKitError = error.localizedDescription
-        }
+        } catch { healthKitError = error.localizedDescription }
     }
 
     func syncHealthKitIfEnabled() async {
@@ -284,40 +258,29 @@ final class AppStore: ObservableObject {
         isHealthSyncing = true
         healthKitError = nil
         defer { isHealthSyncing = false }
-
         do {
-            let startDate = Calendar.current.date(byAdding: .day, value: -180, to: Date())
-                ?? Date().addingTimeInterval(-180 * 86_400)
+            let startDate = Calendar.current.date(byAdding: .day, value: -180, to: Date()) ?? Date().addingTimeInterval(-180 * 86_400)
             let imported = try await healthKitService.fetchBodyMeasurements(since: startDate)
             mergeHealthMeasurements(imported)
             recoverySnapshot = try await healthKitService.fetchRecoverySnapshot()
-        } catch {
-            healthKitError = error.localizedDescription
-        }
+        } catch { healthKitError = error.localizedDescription }
     }
 
     private func mergeHealthMeasurements(_ imported: [BodyMeasurement]) {
         var knownIDs = Set(measurements.compactMap(\.externalID))
         var didAdd = false
-
         for measurement in imported {
             guard let externalID = measurement.externalID else { continue }
             guard knownIDs.insert(externalID).inserted else { continue }
             measurements.append(measurement)
             didAdd = true
         }
-
         if didAdd {
             measurements.sort { $0.recordedAt > $1.recordedAt }
             saveProfile()
         }
     }
 
-    private func saveProfile() {
-        profilePersistence.save(measurements: measurements, targets: targets)
-    }
-
-    private func saveNutrition() {
-        nutritionPersistence.save(entries: nutritionEntries, target: nutritionTarget)
-    }
+    private func saveProfile() { profilePersistence.save(measurements: measurements, targets: targets) }
+    private func saveNutrition() { nutritionPersistence.save(entries: nutritionEntries, target: nutritionTarget) }
 }
