@@ -18,6 +18,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Cloud & AI", systemImage: "icloud")
                     }
+
+                    NavigationLink {
+                        AIContextShareView()
+                    } label: {
+                        Label("Share AI context", systemImage: "square.and.arrow.up")
+                    }
                 }
             }
             .navigationTitle("Settings")
