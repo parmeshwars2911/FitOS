@@ -3,16 +3,25 @@ import SwiftUI
 @main
 struct FitOSApp: App {
     @StateObject private var store = AppStore()
-    @StateObject private var cloudAccount = CloudAccountStore()
+    @StateObject private var cloud = CloudAccountStore()
+    @AppStorage("fitos-onboarding-completed") private var onboardingCompleted = false
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(store)
-                .environmentObject(cloudAccount)
-                .task {
-                    await store.syncHealthKitIfEnabled()
+            Group {
+                if onboardingCompleted {
+                    RootView()
+                        .task {
+                            await store.syncHealthKitIfEnabled()
+                        }
+                } else {
+                    OnboardingView {
+                        onboardingCompleted = true
+                    }
                 }
+            }
+            .environmentObject(store)
+            .environmentObject(cloud)
         }
     }
 }
