@@ -7,6 +7,7 @@ enum EquipmentPreset: String, CaseIterable, Identifiable {
     case dumbbellsOnly
     case machinesOnly
     case cablesOnly
+    case bodyweightOnly
 
     var id: String { rawValue }
 
@@ -18,17 +19,19 @@ enum EquipmentPreset: String, CaseIterable, Identifiable {
         case .dumbbellsOnly: return "Dumbbells only"
         case .machinesOnly: return "Machines only"
         case .cablesOnly: return "Cables only"
+        case .bodyweightOnly: return "Bodyweight only"
         }
     }
 
     var equipment: Set<String> {
         switch self {
         case .fullGym: return []
-        case .machinesAndCables: return ["machine", "cable"]
-        case .freeWeights: return ["barbell", "dumbbell"]
-        case .dumbbellsOnly: return ["dumbbell"]
-        case .machinesOnly: return ["machine"]
-        case .cablesOnly: return ["cable"]
+        case .machinesAndCables: return ["machine", "cable", "bodyweight"]
+        case .freeWeights: return ["barbell", "dumbbell", "bodyweight"]
+        case .dumbbellsOnly: return ["dumbbell", "bodyweight"]
+        case .machinesOnly: return ["machine", "bodyweight"]
+        case .cablesOnly: return ["cable", "bodyweight"]
+        case .bodyweightOnly: return ["bodyweight"]
         }
     }
 }
