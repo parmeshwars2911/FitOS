@@ -18,6 +18,14 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Beta") {
+                    NavigationLink {
+                        BetaMetricsView()
+                    } label: {
+                        Label("Beta metrics", systemImage: "chart.bar.xaxis")
+                    }
+                }
+
                 Section("Data") {
                     NavigationLink {
                         CloudSettingsView()
