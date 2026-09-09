@@ -10,17 +10,33 @@ public enum BodyMetricKind: String, CaseIterable, Codable, Sendable, Hashable {
     case thighCm
 }
 
+public enum BodyMeasurementSource: String, Codable, Sendable, Equatable {
+    case manual
+    case healthKit
+}
+
 public struct BodyMeasurement: Codable, Sendable, Equatable, Identifiable {
     public let id: UUID
     public let kind: BodyMetricKind
     public let value: Double
     public let recordedAt: Date
+    public let source: BodyMeasurementSource?
+    public let externalID: String?
 
-    public init(id: UUID = UUID(), kind: BodyMetricKind, value: Double, recordedAt: Date = Date()) {
+    public init(
+        id: UUID = UUID(),
+        kind: BodyMetricKind,
+        value: Double,
+        recordedAt: Date = Date(),
+        source: BodyMeasurementSource? = .manual,
+        externalID: String? = nil
+    ) {
         self.id = id
         self.kind = kind
         self.value = value
         self.recordedAt = recordedAt
+        self.source = source
+        self.externalID = externalID
     }
 }
 

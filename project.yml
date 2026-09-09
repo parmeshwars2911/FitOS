@@ -16,14 +16,18 @@ targets:
     sources:
       - path: App
       - path: Sources/TrainingEngine
+    dependencies:
+      - sdk: HealthKit.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.parmeshwars2911.FitOS
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "FitOS reads selected Apple Health data to show body trends and recovery context for workout recommendations."
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: App/FitOS.entitlements
 
 schemes:
   FitOS:
