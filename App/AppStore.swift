@@ -30,6 +30,7 @@ final class AppStore: ObservableObject {
     private let coachContextEngine = CoachContextEngine()
     private let weeklyReviewEngine = WeeklyReviewEngine()
     private let planAdherenceEngine = WorkoutPlanAdherenceEngine()
+    private let strengthProgressionEngine = StrengthProgressionEngine()
     private let healthKitEnabledKey = "fitos-healthkit-enabled"
 
     init(
@@ -91,7 +92,8 @@ final class AppStore: ObservableObject {
         generatedWorkout = generator.generate(
             from: trainingState,
             exerciseLibrary: catalog,
-            constraints: constraints
+            constraints: constraints,
+            exerciseHistory: sessions
         )
     }
 
@@ -126,6 +128,34 @@ final class AppStore: ObservableObject {
             }
         }
         return nil
+    }
+
+    func progressionRecommendation(
+        for exerciseID: String,
+        repRange: ClosedRange<Int> = 8...12
+    ) -> ProgressionRecommendation? {
+        guard let previous = previousPerformance(for: exerciseID)?.exercise else { return nil }
+        return strengthProgressionEngine.recommend(previous: previous, repRange: repRange)
+    }
+
+    func strengthTrend(for exerciseID: String) -> ExerciseStrengthTrend? {
+        strengthProgressionEngine.trend(for: exerciseID, sessions: sessions)
+    }
+
+    func recentStrengthTrends(limit: Int = 5) -> [ExerciseStrengthTrend] {
+        var seen = Set<String>()
+        var trends: [ExerciseStrengthTrend] = []
+
+        for session in sessions.sorted(by: { $0.completedAt > $1.completedAt }) {
+            for exercise in session.exercises where seen.insert(exercise.exercise.id).inserted {
+                if let trend = strengthTrend(for: exercise.exercise.id) {
+                    trends.append(trend)
+                }
+            }
+            if trends.count >= limit { break }
+        }
+
+        return Array(trends.prefix(limit))
     }
 
     func deleteSessions(at offsets: IndexSet) {

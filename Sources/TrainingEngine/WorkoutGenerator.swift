@@ -7,12 +7,21 @@ public struct WorkoutGenerator: Sendable {
         from state: TrainingState,
         exerciseLibrary: [ExerciseDefinition],
         constraints: WorkoutConstraint = WorkoutConstraint(),
+        exerciseHistory: [WorkoutSession] = [],
         maxExercises: Int = 7
     ) -> GeneratedWorkout {
         let candidates = exerciseLibrary.filter { exercise in
             guard !constraints.excludedExercises.contains(exercise.id) else { return false }
             return constraints.availableEquipment.isEmpty || constraints.availableEquipment.contains(exercise.equipment)
         }
+
+        var latestExerciseByID: [String: CompletedExercise] = [:]
+        for session in exerciseHistory.sorted(by: { $0.completedAt > $1.completedAt }) {
+            for exercise in session.exercises where latestExerciseByID[exercise.exercise.id] == nil {
+                latestExerciseByID[exercise.exercise.id] = exercise
+            }
+        }
+        let progressionEngine = StrengthProgressionEngine()
 
         let stateByMuscle = Dictionary(uniqueKeysWithValues: state.muscles.map { ($0.muscle, $0) })
         let ranked = candidates.map { exercise -> (ExerciseDefinition, Double, MuscleGroup?) in
@@ -49,7 +58,18 @@ public struct WorkoutGenerator: Sendable {
                 reason = "Adds useful volume to \(muscle.rawValue) while respecting recent fatigue."
             }
 
-            return PlannedExercise(exercise: exercise, sets: sets, repRange: 8...12, reason: reason)
+            let progression = latestExerciseByID[exercise.id].map {
+                progressionEngine.recommend(previous: $0, repRange: 8...12)
+            }
+
+            return PlannedExercise(
+                exercise: exercise,
+                sets: sets,
+                repRange: 8...12,
+                reason: reason,
+                suggestedLoadKg: progression?.suggestedLoadKg,
+                progressionNote: progression?.rationale
+            )
         }
 
         let priorityMuscles = state.muscles

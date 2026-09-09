@@ -111,8 +111,18 @@ struct TodayView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(item.exercise.name)
                             .fontWeight(.semibold)
-                        Text("\(item.sets) sets · \(item.repRange.lowerBound)–\(item.repRange.upperBound) reps")
-                            .font(.subheadline)
+                        if let load = item.suggestedLoadKg {
+                            Text("\(item.sets) sets · \(item.repRange.lowerBound)–\(item.repRange.upperBound) reps · ~\(load, specifier: "%.1f") kg")
+                                .font(.subheadline)
+                        } else {
+                            Text("\(item.sets) sets · \(item.repRange.lowerBound)–\(item.repRange.upperBound) reps")
+                                .font(.subheadline)
+                        }
+                        if let progressionNote = item.progressionNote {
+                            Text(progressionNote)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Text(item.reason)
                             .font(.caption)
                             .foregroundStyle(.secondary)

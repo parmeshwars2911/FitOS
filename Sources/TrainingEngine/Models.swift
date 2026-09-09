@@ -121,12 +121,23 @@ public struct PlannedExercise: Codable, Sendable, Equatable {
     public let sets: Int
     public let repRange: ClosedRange<Int>
     public let reason: String
+    public let suggestedLoadKg: Double?
+    public let progressionNote: String?
 
-    public init(exercise: ExerciseDefinition, sets: Int, repRange: ClosedRange<Int>, reason: String) {
+    public init(
+        exercise: ExerciseDefinition,
+        sets: Int,
+        repRange: ClosedRange<Int>,
+        reason: String,
+        suggestedLoadKg: Double? = nil,
+        progressionNote: String? = nil
+    ) {
         self.exercise = exercise
         self.sets = sets
         self.repRange = repRange
         self.reason = reason
+        self.suggestedLoadKg = suggestedLoadKg
+        self.progressionNote = progressionNote
     }
 }
 

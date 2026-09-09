@@ -20,7 +20,8 @@ struct WorkoutLoggerView: View {
                     exercise: $0.exercise,
                     plannedExerciseID: $0.exercise.id,
                     setCount: $0.sets,
-                    defaultReps: $0.repRange.lowerBound
+                    defaultReps: $0.repRange.lowerBound,
+                    defaultLoadKg: $0.suggestedLoadKg ?? 0
                 )
             }
             plannedExerciseIDs = plan.exercises.map(\.exercise.id)
@@ -120,9 +121,21 @@ struct WorkoutLoggerView: View {
                 ) { exercise in
                     if let replacementDraftID,
                        let index = drafts.firstIndex(where: { $0.id == replacementDraftID }) {
-                        drafts[index].exercise = exercise
+                        let existing = drafts[index]
+                        drafts[index] = ExerciseDraft(
+                            exercise: exercise,
+                            plannedExerciseID: existing.plannedExerciseID,
+                            setCount: existing.sets.count,
+                            defaultReps: 10,
+                            defaultLoadKg: startingLoad(for: exercise.id)
+                        )
                     } else {
-                        drafts.append(ExerciseDraft(exercise: exercise))
+                        drafts.append(
+                            ExerciseDraft(
+                                exercise: exercise,
+                                defaultLoadKg: startingLoad(for: exercise.id)
+                            )
+                        )
                     }
                     showingExercisePicker = false
                 }
@@ -175,6 +188,13 @@ struct WorkoutLoggerView: View {
                 }
             }
         }
+    }
+
+    private func startingLoad(for exerciseID: String) -> Double {
+        if let recommended = store.progressionRecommendation(for: exerciseID)?.suggestedLoadKg {
+            return recommended
+        }
+        return store.previousPerformance(for: exerciseID)?.exercise.sets.first(where: { $0.loadKg > 0 })?.loadKg ?? 0
     }
 
     private func startRestTimer() {
