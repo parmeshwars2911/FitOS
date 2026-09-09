@@ -13,6 +13,7 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
+                    RecommendationFeedbackCard()
                     HealthRecoveryCard()
                     WeeklyReviewCard()
                     trainingStateSection
