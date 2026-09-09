@@ -9,6 +9,7 @@ public struct WorkoutGenerator: Sendable {
         constraints: WorkoutConstraint = WorkoutConstraint(),
         exerciseHistory: [WorkoutSession] = [],
         exercisePreferences: [String: ExercisePreference] = [:],
+        readiness: SessionReadiness = .normal,
         maxExercises: Int = 7
     ) -> GeneratedWorkout {
         let candidates = exerciseLibrary.filter { exercise in
@@ -46,19 +47,30 @@ public struct WorkoutGenerator: Sendable {
         let estimatedMinutesPerSet = 3.0
         let warmupBufferMinutes = 8.0
         let availableSetMinutes = max(0, Double(constraints.durationMinutes) - warmupBufferMinutes)
-        var remainingSets = max(1, Int(availableSetMinutes / estimatedMinutesPerSet))
+        let normalSetBudget = max(1, Int(availableSetMinutes / estimatedMinutesPerSet))
+        var remainingSets = max(1, Int(floor(Double(normalSetBudget) * readiness.setBudgetMultiplier)))
         var selected: [PlannedExercise] = []
         var directSetsByMuscle: [MuscleGroup: Int] = [:]
         var selectedExerciseIDs = Set<String>()
 
         func plannedExercise(_ exercise: ExerciseDefinition, for muscleState: MuscleState, muscle: MuscleGroup, sets: Int) -> PlannedExercise {
-            let reason: String
+            let trainingReason: String
             if muscleState.deficitSets >= muscleState.targetSets * 0.6 {
-                reason = "High training debt: \(muscle.rawValue) is well below its rolling target."
+                trainingReason = "High training debt: \(muscle.rawValue) is well below its rolling target."
             } else if muscleState.recovery >= 0.9 {
-                reason = "\(muscle.rawValue) is recovered and still below target."
+                trainingReason = "\(muscle.rawValue) is recovered and still below target."
             } else {
-                reason = "Adds useful volume to \(muscle.rawValue) while respecting recent fatigue."
+                trainingReason = "Adds useful volume to \(muscle.rawValue) while respecting recent fatigue."
+            }
+
+            let readinessInstruction: String
+            switch readiness {
+            case .low:
+                readinessInstruction = " Low readiness today: keep about 3 RIR and reduce load if needed."
+            case .normal:
+                readinessInstruction = " Aim for about 2 RIR on working sets."
+            case .high:
+                readinessInstruction = " High readiness today: about 1–2 RIR is fine, without adding extra weekly volume."
             }
 
             let progression = latestExerciseByID[exercise.id].map {
@@ -69,7 +81,7 @@ public struct WorkoutGenerator: Sendable {
                 exercise: exercise,
                 sets: sets,
                 repRange: 8...12,
-                reason: reason,
+                reason: trainingReason + readinessInstruction,
                 suggestedLoadKg: progression?.suggestedLoadKg,
                 progressionNote: progression?.rationale
             )
@@ -88,7 +100,8 @@ public struct WorkoutGenerator: Sendable {
             }
 
             guard let (exercise, _, _) = directCandidate else { continue }
-            let desired = Int(ceil(min(3, max(2, muscleState.deficitSets))))
+            let normalDesired = Int(ceil(min(3, max(2, muscleState.deficitSets))))
+            let desired = readiness == .low ? min(2, normalDesired) : normalDesired
             let sets = min(desired, remainingSets)
             guard sets >= 2 else { continue }
 
@@ -104,7 +117,8 @@ public struct WorkoutGenerator: Sendable {
             guard let topMuscle, let muscleState = stateByMuscle[topMuscle] else { continue }
             if directSetsByMuscle[topMuscle, default: 0] >= 6 { continue }
 
-            let desired = Int(ceil(min(4, max(2, muscleState.deficitSets))))
+            let normalDesired = Int(ceil(min(4, max(2, muscleState.deficitSets))))
+            let desired = readiness == .low ? min(2, normalDesired) : normalDesired
             let sets = min(desired, remainingSets)
             guard sets >= 2 else { continue }
 
@@ -117,7 +131,17 @@ public struct WorkoutGenerator: Sendable {
         let totalSets = selected.reduce(0) { $0 + $1.sets }
         let estimated = min(constraints.durationMinutes, Int(warmupBufferMinutes + Double(totalSets) * estimatedMinutesPerSet))
 
-        let rationale = state.muscles
+        var rationale: [String] = []
+        switch readiness {
+        case .low:
+            rationale.append("Low readiness: FitOS reduced today's set budget by 25% and recommends ~3 RIR. Training debt remains for later sessions.")
+        case .normal:
+            rationale.append("Normal readiness: standard session volume with ~2 RIR guidance.")
+        case .high:
+            rationale.append("High readiness: keep the planned weekly volume; working sets can approach ~1–2 RIR without adding extra sets.")
+        }
+
+        rationale += state.muscles
             .filter { $0.priorityScore > 0.25 }
             .prefix(4)
             .map { muscle in
