@@ -8,6 +8,9 @@ struct FitOSApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(store)
+                .task {
+                    await store.syncHealthKitIfEnabled()
+                }
         }
     }
 }

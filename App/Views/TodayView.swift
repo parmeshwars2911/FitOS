@@ -14,6 +14,7 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
+                    HealthRecoveryCard()
                     trainingStateSection
                     generatorSection
                     generatedWorkoutSection
