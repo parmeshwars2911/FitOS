@@ -7,6 +7,7 @@ final class CloudAccountStore: ObservableObject {
     @Published private(set) var isBusy = false
     @Published private(set) var statusMessage: String?
     @Published private(set) var syncMetadata: CloudSyncMetadata?
+    @Published private(set) var pendingRemoteState: RemoteCloudState?
 
     let configuration: SupabaseConfiguration?
 
@@ -75,6 +76,7 @@ final class CloudAccountStore: ObservableObject {
             try keychain.save(verified)
             session = verified
             syncMetadata = metadataStore.load(userID: verified.userID)
+            pendingRemoteState = nil
             self.pendingEmail = nil
             statusMessage = "Signed in."
         } catch {
@@ -98,6 +100,7 @@ final class CloudAccountStore: ObservableObject {
         session = nil
         pendingEmail = nil
         syncMetadata = nil
+        pendingRemoteState = nil
         statusMessage = "Signed out on this device."
     }
 
@@ -120,11 +123,8 @@ final class CloudAccountStore: ObservableObject {
 
             if let remote {
                 guard let known, known.revision == remote.revision else {
-                    syncMetadata = CloudSyncMetadata(
-                        revision: remote.revision,
-                        lastSyncedAt: remote.updatedAt
-                    )
-                    statusMessage = "Cloud has an unrecognized newer revision. FitOS did not overwrite it. Restore/reconciliation will be added before multi-device sync is enabled."
+                    pendingRemoteState = remote
+                    statusMessage = "A cloud backup exists that this device has not synchronized. FitOS did not overwrite it. Review and restore it below if this device should use that backup."
                     return
                 }
 
@@ -133,6 +133,7 @@ final class CloudAccountStore: ObservableObject {
                     expectedRevision: remote.revision,
                     accessToken: validSession.accessToken
                 )
+                pendingRemoteState = nil
                 record(committed, userID: validSession.userID)
                 statusMessage = "Cloud backup updated."
             } else {
@@ -141,9 +142,27 @@ final class CloudAccountStore: ObservableObject {
                     expectedRevision: nil,
                     accessToken: validSession.accessToken
                 )
+                pendingRemoteState = nil
                 record(committed, userID: validSession.userID)
                 statusMessage = "First cloud backup created."
             }
+        } catch {
+            statusMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func restorePendingRemote(into appStore: AppStore) {
+        guard let current = session, let remote = pendingRemoteState else {
+            statusMessage = "No cloud backup is waiting to be restored."
+            return
+        }
+
+        do {
+            try appStore.restoreFromCloud(remote.payload)
+            record(remote, userID: current.userID)
+            pendingRemoteState = nil
+            statusMessage = "This device was restored from cloud revision \(remote.revision)."
         } catch {
             statusMessage = error.localizedDescription
         }

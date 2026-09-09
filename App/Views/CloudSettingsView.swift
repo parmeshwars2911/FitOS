@@ -6,6 +6,7 @@ struct CloudSettingsView: View {
 
     @State private var email = ""
     @State private var code = ""
+    @State private var showRestoreConfirmation = false
 
     var body: some View {
         Form {
@@ -24,6 +25,10 @@ struct CloudSettingsView: View {
                 signInSection
             }
 
+            if let remote = cloud.pendingRemoteState {
+                restoreSection(remote)
+            }
+
             if let message = cloud.statusMessage {
                 Section("Status") {
                     Text(message)
@@ -32,6 +37,20 @@ struct CloudSettingsView: View {
             }
         }
         .navigationTitle("Cloud & AI")
+        .confirmationDialog(
+            "Replace this device's FitOS data with the cloud backup?",
+            isPresented: $showRestoreConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Replace local data", role: .destructive) {
+                Task { @MainActor in
+                    cloud.restorePendingRemote(into: appStore)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Workouts, body measurements, training targets, and nutrition stored locally on this device will be replaced by the selected cloud snapshot. Apple Health authorization itself is not changed.")
+        }
     }
 
     private var signInSection: some View {
@@ -108,6 +127,27 @@ struct CloudSettingsView: View {
             .disabled(cloud.isBusy)
         } footer: {
             Text("Cloud backup does not grant ChatGPT, Claude, or any MCP client access. External AI sharing will require a separate opt-in permission.")
+        }
+    }
+
+    private func restoreSection(_ remote: RemoteCloudState) -> some View {
+        Section("Cloud backup available") {
+            LabeledContent("Revision", value: String(remote.revision))
+            LabeledContent("Updated") {
+                Text(remote.updatedAt, style: .relative)
+            }
+            LabeledContent("Workouts", value: String(remote.payload.sessions.count))
+            LabeledContent("Body records", value: String(remote.payload.measurements.count))
+            LabeledContent("Nutrition entries", value: String(remote.payload.nutritionEntries.count))
+
+            Button("Restore this device from cloud", role: .destructive) {
+                showRestoreConfirmation = true
+            }
+            .disabled(cloud.isBusy)
+
+            Text("Restore replaces local FitOS logs and targets with this exact snapshot. Nothing is overwritten until you confirm.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 

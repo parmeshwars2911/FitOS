@@ -167,6 +167,21 @@ final class AppStore: ObservableObject {
         saveNutrition()
     }
 
+    func restoreFromCloud(_ snapshot: CloudStateSnapshot) throws {
+        try snapshot.validate()
+
+        sessions = snapshot.sessions.sorted { $0.completedAt > $1.completedAt }
+        measurements = snapshot.measurements.sorted { $0.recordedAt > $1.recordedAt }
+        targets = snapshot.muscleTargets
+        nutritionEntries = snapshot.nutritionEntries.sorted { $0.recordedAt > $1.recordedAt }
+        nutritionTarget = snapshot.nutritionTarget
+        generatedWorkout = nil
+
+        workoutPersistence.save(sessions)
+        saveProfile()
+        saveNutrition()
+    }
+
     func connectHealthKit() async {
         healthKitError = nil
         guard healthKitAvailable else {
