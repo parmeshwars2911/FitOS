@@ -40,7 +40,9 @@ final class AppStore: ObservableObject {
     }
 
     func deleteSessions(at offsets: IndexSet) {
-        sessions.remove(atOffsets: offsets)
+        for index in offsets.sorted(by: >) {
+            sessions.remove(at: index)
+        }
         persistence.save(sessions)
         generatedWorkout = nil
     }

@@ -105,9 +105,9 @@ struct TodayView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                ForEach(Array(workout.exercises.enumerated()), id: \.element.exercise.id) { index, item in
+                ForEach(workout.exercises, id: \.exercise.id) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("\(index + 1). \(item.exercise.name)")
+                        Text(item.exercise.name)
                             .fontWeight(.semibold)
                         Text("\(item.sets) sets · \(item.repRange.lowerBound)–\(item.repRange.upperBound) reps")
                             .font(.subheadline)
