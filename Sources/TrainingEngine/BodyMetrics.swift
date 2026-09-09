@@ -53,7 +53,7 @@ public struct BodyTrendEngine: Sendable {
         windowDays: Double? = nil,
         asOf: Date = Date()
     ) -> BodyMetricTrend? {
-        var relevant = measurements.filter { measurement in
+        let relevant = measurements.filter { measurement in
             guard measurement.kind == kind, measurement.recordedAt <= asOf else { return false }
             if let windowDays {
                 let start = asOf.addingTimeInterval(-windowDays * 24 * 3600)
