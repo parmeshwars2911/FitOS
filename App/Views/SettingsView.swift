@@ -28,6 +28,12 @@ struct SettingsView: View {
 
                 Section("Data") {
                     NavigationLink {
+                        LocalBackupView()
+                    } label: {
+                        Label("Local backup", systemImage: "externaldrive")
+                    }
+
+                    NavigationLink {
                         CloudSettingsView()
                     } label: {
                         Label("Cloud & AI", systemImage: "icloud")
