@@ -25,6 +25,8 @@ final class AppStore: ObservableObject {
     private let generator = WorkoutGenerator()
     private let bodyTrendEngine = BodyTrendEngine()
     private let nutritionEngine = NutritionEngine()
+    private let coachContextEngine = CoachContextEngine()
+    private let weeklyReviewEngine = WeeklyReviewEngine()
     private let healthKitEnabledKey = "fitos-healthkit-enabled"
 
     init(
@@ -56,6 +58,20 @@ final class AppStore: ObservableObject {
 
     var trainingState: TrainingState {
         engine.evaluate(sessions: sessions, targets: targets)
+    }
+
+    var coachContext: CoachContext {
+        coachContextEngine.build(
+            trainingState: trainingState,
+            sessions: sessions,
+            measurements: measurements,
+            nutritionEntries: nutritionEntries,
+            nutritionTarget: nutritionTarget
+        )
+    }
+
+    var weeklyReview: WeeklyReview {
+        weeklyReviewEngine.review(context: coachContext)
     }
 
     func generateWorkout(durationMinutes: Int = 60) {
