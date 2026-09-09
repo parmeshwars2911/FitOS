@@ -18,12 +18,13 @@ struct ExerciseDraft: Identifiable {
         exercise: ExerciseDefinition,
         plannedExerciseID: String? = nil,
         setCount: Int = 3,
-        defaultReps: Int = 10
+        defaultReps: Int = 10,
+        defaultLoadKg: Double = 0
     ) {
         self.exercise = exercise
         self.plannedExerciseID = plannedExerciseID
         self.sets = (0..<max(1, setCount)).map { _ in
-            SetDraft(reps: defaultReps)
+            SetDraft(reps: defaultReps, loadKg: max(0, defaultLoadKg))
         }
     }
 }

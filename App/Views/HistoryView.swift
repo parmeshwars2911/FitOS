@@ -26,6 +26,33 @@ struct HistoryView: View {
                             }
                         }
 
+                        let strengthTrends = store.recentStrengthTrends()
+                        if !strengthTrends.isEmpty {
+                            Section("Estimated strength") {
+                                ForEach(strengthTrends) { trend in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack {
+                                            Text(trend.exerciseName)
+                                                .fontWeight(.semibold)
+                                            Spacer()
+                                            Text("e1RM \(trend.latestEstimated1RMKg, specifier: "%.1f") kg")
+                                                .font(.caption.monospacedDigit())
+                                        }
+                                        if let change = trend.percentChangeFromPrevious {
+                                            Text("\(signedPercent(change)) vs previous session · best \(trend.bestEstimated1RMKg, specifier: "%.1f") kg")
+                                                .font(.caption)
+                                                .foregroundStyle(change >= 0 ? Color.green : Color.secondary)
+                                        } else {
+                                            Text("First strength estimate · best \(trend.bestEstimated1RMKg, specifier: "%.1f") kg")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .padding(.vertical, 2)
+                                }
+                            }
+                        }
+
                         Section("Workouts") {
                             ForEach(store.sessions) { session in
                                 VStack(alignment: .leading, spacing: 6) {
@@ -55,5 +82,9 @@ struct HistoryView: View {
 
     private func totalSets(in session: WorkoutSession) -> Int {
         session.exercises.reduce(0) { $0 + $1.sets.count }
+    }
+
+    private func signedPercent(_ value: Double) -> String {
+        String(format: "%+.1f%%", value)
     }
 }
