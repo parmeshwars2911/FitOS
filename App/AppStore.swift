@@ -251,6 +251,43 @@ final class AppStore: ObservableObject {
         saveNutrition()
     }
 
+    func makeLocalBackupArchive(generatedAt: Date = Date()) -> FitOSBackupArchive {
+        FitOSBackupArchive(
+            generatedAt: generatedAt,
+            sessions: sessions,
+            measurements: measurements,
+            muscleTargets: targets,
+            nutritionEntries: nutritionEntries,
+            nutritionTarget: nutritionTarget,
+            planAdherenceRecords: planAdherenceRecords,
+            exercisePreferences: exercisePreferences,
+            workoutFeedbackRecords: workoutFeedbackRecords
+        )
+    }
+
+    func restoreFromLocalBackup(_ archive: FitOSBackupArchive) throws {
+        try archive.validate()
+        sessions = archive.sessions.sorted { $0.completedAt > $1.completedAt }
+        measurements = archive.measurements.sorted { $0.recordedAt > $1.recordedAt }
+        targets = archive.muscleTargets
+        nutritionEntries = archive.nutritionEntries.sorted { $0.recordedAt > $1.recordedAt }
+        nutritionTarget = archive.nutritionTarget
+        planAdherenceRecords = archive.planAdherenceRecords.sorted { $0.recordedAt > $1.recordedAt }
+        generatedWorkout = nil
+
+        workoutPersistence.save(sessions)
+        saveProfile()
+        saveNutrition()
+        planAdherencePersistence.save(planAdherenceRecords)
+        WorkoutFeedbackPersistence().save(archive.workoutFeedbackRecords)
+
+        if archive.exercisePreferences.isEmpty {
+            userDefaults.removeObject(forKey: exercisePreferenceKey)
+        } else if let data = try? JSONEncoder().encode(archive.exercisePreferences) {
+            userDefaults.set(data, forKey: exercisePreferenceKey)
+        }
+    }
+
     func restoreFromCloud(_ snapshot: CloudStateSnapshot) throws {
         try snapshot.validate()
         sessions = snapshot.sessions.sorted { $0.completedAt > $1.completedAt }
