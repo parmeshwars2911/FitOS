@@ -247,14 +247,15 @@ public struct WeeklyReviewEngine: Sendable {
             )
         }
 
-        if let trend = context.weightTrend14Days, trend.observationCount >= 2,
-           let firstDelta = trend.previousValue.map({ trend.latestValue - $0 }) {
+        if let trend = context.weightTrend14Days,
+           trend.observationCount >= 2,
+           let delta = trend.smoothedDelta {
             observations.append(
                 CoachObservation(
                     id: "weight-trend",
                     kind: .information,
                     title: "Recent weight movement",
-                    message: "Your latest weight is \(signed(firstDelta)) kg versus the previous observation. FitOS records the movement without assuming it is muscle or fat."
+                    message: "Your smoothed weight signal is \(signed(delta)) kg versus its previous estimate (\(trend.confidence.rawValue) measurement confidence). FitOS does not assume the movement is muscle or fat."
                 )
             )
         }
@@ -293,7 +294,7 @@ public struct WeeklyReviewEngine: Sendable {
         var score = 0
         if context.recentWorkoutCount >= 2 { score += 1 }
         if context.recentNutrition.daysWithEntries >= 3 { score += 1 }
-        if (context.weightTrend14Days?.observationCount ?? 0) >= 2 { score += 1 }
+        if let weight = context.weightTrend14Days, weight.confidence != .low { score += 1 }
 
         switch score {
         case 3: return .high
