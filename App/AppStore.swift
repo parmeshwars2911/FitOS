@@ -7,6 +7,8 @@ final class AppStore: ObservableObject {
     @Published private(set) var generatedWorkout: GeneratedWorkout?
     @Published private(set) var measurements: [BodyMeasurement]
     @Published private(set) var targets: [MuscleTarget]
+    @Published private(set) var nutritionEntries: [NutritionEntry]
+    @Published private(set) var nutritionTarget: NutritionTarget
     @Published private(set) var healthKitEnabled: Bool
     @Published private(set) var isHealthSyncing = false
     @Published private(set) var recoverySnapshot: RecoverySnapshot?
@@ -16,27 +18,34 @@ final class AppStore: ObservableObject {
 
     private let workoutPersistence: WorkoutPersistence
     private let profilePersistence: ProfilePersistence
+    private let nutritionPersistence: NutritionPersistence
     private let healthKitService: HealthKitService
     private let userDefaults: UserDefaults
     private let engine = TrainingStateEngine()
     private let generator = WorkoutGenerator()
     private let bodyTrendEngine = BodyTrendEngine()
+    private let nutritionEngine = NutritionEngine()
     private let healthKitEnabledKey = "fitos-healthkit-enabled"
 
     init(
         persistence: WorkoutPersistence = WorkoutPersistence(),
         profilePersistence: ProfilePersistence = ProfilePersistence(),
+        nutritionPersistence: NutritionPersistence = NutritionPersistence(),
         healthKitService: HealthKitService? = nil,
         userDefaults: UserDefaults = .standard
     ) {
         self.workoutPersistence = persistence
         self.profilePersistence = profilePersistence
+        self.nutritionPersistence = nutritionPersistence
         self.healthKitService = healthKitService ?? HealthKitService()
         self.userDefaults = userDefaults
         self.sessions = persistence.load()
         let profile = profilePersistence.load(defaultTargets: DefaultTargets.all)
         self.measurements = profile.measurements.sorted { $0.recordedAt > $1.recordedAt }
         self.targets = profile.targets
+        let nutrition = nutritionPersistence.load()
+        self.nutritionEntries = nutrition.entries.sorted { $0.recordedAt > $1.recordedAt }
+        self.nutritionTarget = nutrition.target
         self.healthKitEnabled = userDefaults.bool(forKey: healthKitEnabledKey)
         self.generatedWorkout = nil
     }
@@ -114,6 +123,34 @@ final class AppStore: ObservableObject {
         saveProfile()
     }
 
+    func nutritionSummary(for date: Date) -> DailyNutritionSummary {
+        nutritionEngine.summary(entries: nutritionEntries, target: nutritionTarget, on: date)
+    }
+
+    func nutritionEntries(for date: Date, calendar: Calendar = .current) -> [NutritionEntry] {
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86_400)
+        return nutritionEntries
+            .filter { $0.recordedAt >= start && $0.recordedAt < end }
+            .sorted { $0.recordedAt > $1.recordedAt }
+    }
+
+    func addNutritionEntry(_ entry: NutritionEntry) {
+        nutritionEntries.append(entry)
+        nutritionEntries.sort { $0.recordedAt > $1.recordedAt }
+        saveNutrition()
+    }
+
+    func deleteNutritionEntry(id: UUID) {
+        nutritionEntries.removeAll { $0.id == id }
+        saveNutrition()
+    }
+
+    func updateNutritionTarget(_ target: NutritionTarget) {
+        nutritionTarget = target
+        saveNutrition()
+    }
+
     func connectHealthKit() async {
         healthKitError = nil
         guard healthKitAvailable else {
@@ -172,5 +209,9 @@ final class AppStore: ObservableObject {
 
     private func saveProfile() {
         profilePersistence.save(measurements: measurements, targets: targets)
+    }
+
+    private func saveNutrition() {
+        nutritionPersistence.save(entries: nutritionEntries, target: nutritionTarget)
     }
 }
