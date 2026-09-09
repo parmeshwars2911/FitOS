@@ -109,7 +109,11 @@ final class AppStore: ObservableObject {
         generatedWorkout = nil
     }
 
-    func generateWorkout(durationMinutes: Int = 60, availableEquipment: Set<String> = []) {
+    func generateWorkout(
+        durationMinutes: Int = 60,
+        availableEquipment: Set<String> = [],
+        readiness: SessionReadiness = .normal
+    ) {
         let constraints = WorkoutConstraint(
             durationMinutes: durationMinutes,
             availableEquipment: availableEquipment
@@ -119,7 +123,8 @@ final class AppStore: ObservableObject {
             exerciseLibrary: catalog,
             constraints: constraints,
             exerciseHistory: sessions,
-            exercisePreferences: exercisePreferences
+            exercisePreferences: exercisePreferences,
+            readiness: readiness
         )
     }
 

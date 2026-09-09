@@ -4,6 +4,7 @@ struct TodayView: View {
     @EnvironmentObject private var store: AppStore
     @State private var durationMinutes = 60
     @State private var equipmentPreset: EquipmentPreset = .fullGym
+    @State private var readiness: SessionReadiness = .normal
     @State private var showingLogger = false
 
     private var priorityMuscles: [MuscleState] { Array(store.trainingState.muscles.prefix(6)) }
@@ -89,16 +90,41 @@ struct TodayView: View {
             .padding(.vertical, 8)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
 
+            VStack(alignment: .leading, spacing: 7) {
+                Label("How do you feel today?", systemImage: "gauge.with.dots.needle.50percent")
+                    .font(.subheadline.weight(.semibold))
+                Picker("Readiness", selection: $readiness) {
+                    Text("Low").tag(SessionReadiness.low)
+                    Text("Normal").tag(SessionReadiness.normal)
+                    Text("High").tag(SessionReadiness.high)
+                }
+                .pickerStyle(.segmented)
+                Text(readinessExplanation)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+
             Button {
                 store.generateWorkout(
                     durationMinutes: durationMinutes,
-                    availableEquipment: equipmentPreset.equipment
+                    availableEquipment: equipmentPreset.equipment,
+                    readiness: readiness
                 )
             } label: {
                 Label("Build Today's Workout", systemImage: "wand.and.stars")
                     .frame(maxWidth: .infinity).padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
+        }
+    }
+
+    private var readinessExplanation: String {
+        switch readiness {
+        case .low: return "FitOS trims today's set budget and keeps more reps in reserve. Missed volume remains as future training debt."
+        case .normal: return "Use the normal adaptive plan and aim for about 2 reps in reserve on working sets."
+        case .high: return "You can work a little closer to failure, but FitOS will not add extra weekly sets just because today feels good."
         }
     }
 
