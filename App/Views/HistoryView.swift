@@ -14,24 +14,38 @@ struct HistoryView: View {
                     )
                 } else {
                     List {
-                        ForEach(store.sessions) { session in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text(session.completedAt, style: .date)
+                        if let acceptance = store.generatedExerciseAcceptanceRate {
+                            Section("Train Today feedback") {
+                                LabeledContent("Exercise acceptance") {
+                                    Text("\(Int((acceptance * 100).rounded()))%")
                                         .fontWeight(.semibold)
-                                    Spacer()
-                                    Text("\(totalSets(in: session)) sets")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
                                 }
-                                Text(session.exercises.map { $0.exercise.name }.joined(separator: " · "))
+                                Text("Share of FitOS-generated exercises completed without replacing or skipping them.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                    .lineLimit(2)
                             }
-                            .padding(.vertical, 4)
                         }
-                        .onDelete(perform: store.deleteSessions)
+
+                        Section("Workouts") {
+                            ForEach(store.sessions) { session in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(session.completedAt, style: .date)
+                                            .fontWeight(.semibold)
+                                        Spacer()
+                                        Text("\(totalSets(in: session)) sets")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Text(session.exercises.map { $0.exercise.name }.joined(separator: " · "))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                            .onDelete(perform: store.deleteSessions)
+                        }
                     }
                 }
             }

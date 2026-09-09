@@ -9,6 +9,7 @@ final class AppStore: ObservableObject {
     @Published private(set) var targets: [MuscleTarget]
     @Published private(set) var nutritionEntries: [NutritionEntry]
     @Published private(set) var nutritionTarget: NutritionTarget
+    @Published private(set) var planAdherenceRecords: [WorkoutPlanAdherence]
     @Published private(set) var healthKitEnabled: Bool
     @Published private(set) var isHealthSyncing = false
     @Published private(set) var recoverySnapshot: RecoverySnapshot?
@@ -19,6 +20,7 @@ final class AppStore: ObservableObject {
     private let workoutPersistence: WorkoutPersistence
     private let profilePersistence: ProfilePersistence
     private let nutritionPersistence: NutritionPersistence
+    private let planAdherencePersistence: WorkoutPlanAdherencePersistence
     private let healthKitService: HealthKitService
     private let userDefaults: UserDefaults
     private let engine = TrainingStateEngine()
@@ -27,18 +29,21 @@ final class AppStore: ObservableObject {
     private let nutritionEngine = NutritionEngine()
     private let coachContextEngine = CoachContextEngine()
     private let weeklyReviewEngine = WeeklyReviewEngine()
+    private let planAdherenceEngine = WorkoutPlanAdherenceEngine()
     private let healthKitEnabledKey = "fitos-healthkit-enabled"
 
     init(
         persistence: WorkoutPersistence = WorkoutPersistence(),
         profilePersistence: ProfilePersistence = ProfilePersistence(),
         nutritionPersistence: NutritionPersistence = NutritionPersistence(),
+        planAdherencePersistence: WorkoutPlanAdherencePersistence = WorkoutPlanAdherencePersistence(),
         healthKitService: HealthKitService? = nil,
         userDefaults: UserDefaults = .standard
     ) {
         self.workoutPersistence = persistence
         self.profilePersistence = profilePersistence
         self.nutritionPersistence = nutritionPersistence
+        self.planAdherencePersistence = planAdherencePersistence
         self.healthKitService = healthKitService ?? HealthKitService()
         self.userDefaults = userDefaults
         self.sessions = persistence.load()
@@ -48,6 +53,7 @@ final class AppStore: ObservableObject {
         let nutrition = nutritionPersistence.load()
         self.nutritionEntries = nutrition.entries.sorted { $0.recordedAt > $1.recordedAt }
         self.nutritionTarget = nutrition.target
+        self.planAdherenceRecords = planAdherencePersistence.load().sorted { $0.recordedAt > $1.recordedAt }
         self.healthKitEnabled = userDefaults.bool(forKey: healthKitEnabledKey)
         self.generatedWorkout = nil
     }
@@ -74,6 +80,12 @@ final class AppStore: ObservableObject {
         weeklyReviewEngine.review(context: coachContext)
     }
 
+    var generatedExerciseAcceptanceRate: Double? {
+        let values = planAdherenceRecords.compactMap(\.acceptanceRatio)
+        guard !values.isEmpty else { return nil }
+        return values.reduce(0, +) / Double(values.count)
+    }
+
     func generateWorkout(durationMinutes: Int = 60) {
         let constraints = WorkoutConstraint(durationMinutes: durationMinutes)
         generatedWorkout = generator.generate(
@@ -83,18 +95,49 @@ final class AppStore: ObservableObject {
         )
     }
 
-    func complete(_ session: WorkoutSession) {
+    func complete(
+        _ session: WorkoutSession,
+        plannedExerciseIDs: [String] = [],
+        outcomes: [WorkoutPlanOutcome] = []
+    ) {
         sessions.append(session)
         sessions.sort { $0.completedAt > $1.completedAt }
         workoutPersistence.save(sessions)
+
+        if !plannedExerciseIDs.isEmpty {
+            let adherence = planAdherenceEngine.evaluate(
+                workoutSessionID: session.id,
+                plannedExerciseIDs: plannedExerciseIDs,
+                outcomes: outcomes,
+                recordedAt: session.completedAt
+            )
+            planAdherenceRecords.append(adherence)
+            planAdherenceRecords.sort { $0.recordedAt > $1.recordedAt }
+            planAdherencePersistence.save(planAdherenceRecords)
+        }
+
         generateWorkout()
     }
 
+    func previousPerformance(for exerciseID: String) -> (completedAt: Date, exercise: CompletedExercise)? {
+        for session in sessions.sorted(by: { $0.completedAt > $1.completedAt }) {
+            if let exercise = session.exercises.first(where: { $0.exercise.id == exerciseID }) {
+                return (session.completedAt, exercise)
+            }
+        }
+        return nil
+    }
+
     func deleteSessions(at offsets: IndexSet) {
-        for index in offsets.sorted(by: >) {
+        let deletedIDs = Set(offsets.compactMap { index in
+            sessions.indices.contains(index) ? sessions[index].id : nil
+        })
+        for index in offsets.sorted(by: >) where sessions.indices.contains(index) {
             sessions.remove(at: index)
         }
+        planAdherenceRecords.removeAll { deletedIDs.contains($0.workoutSessionID) }
         workoutPersistence.save(sessions)
+        planAdherencePersistence.save(planAdherenceRecords)
         generatedWorkout = nil
     }
 
@@ -175,11 +218,13 @@ final class AppStore: ObservableObject {
         targets = snapshot.muscleTargets
         nutritionEntries = snapshot.nutritionEntries.sorted { $0.recordedAt > $1.recordedAt }
         nutritionTarget = snapshot.nutritionTarget
+        planAdherenceRecords = []
         generatedWorkout = nil
 
         workoutPersistence.save(sessions)
         saveProfile()
         saveNutrition()
+        planAdherencePersistence.save(planAdherenceRecords)
     }
 
     func connectHealthKit() async {
