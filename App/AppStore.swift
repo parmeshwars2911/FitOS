@@ -128,6 +128,10 @@ final class AppStore: ObservableObject {
         )
     }
 
+    func invalidateGeneratedWorkout() {
+        generatedWorkout = nil
+    }
+
     func complete(_ session: WorkoutSession, plannedExerciseIDs: [String] = [], outcomes: [WorkoutPlanOutcome] = []) {
         sessions.append(session)
         sessions.sort { $0.completedAt > $1.completedAt }
@@ -145,7 +149,10 @@ final class AppStore: ObservableObject {
             planAdherencePersistence.save(planAdherenceRecords)
         }
 
-        generateWorkout()
+        // Completing a workout changes training state. Do not silently build the next
+        // session with hidden default constraints; Today should rebuild using the
+        // duration, equipment, readiness and preferences the user can actually see.
+        generatedWorkout = nil
     }
 
     func previousPerformance(for exerciseID: String) -> (completedAt: Date, exercise: CompletedExercise)? {

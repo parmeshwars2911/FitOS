@@ -28,6 +28,15 @@ struct TodayView: View {
                 WorkoutLoggerView(plan: store.generatedWorkout, catalog: store.catalog)
                     .environmentObject(store)
             }
+            .onChange(of: durationMinutes) { _, _ in
+                store.invalidateGeneratedWorkout()
+            }
+            .onChange(of: equipmentPreset) { _, _ in
+                store.invalidateGeneratedWorkout()
+            }
+            .onChange(of: readiness) { _, _ in
+                store.invalidateGeneratedWorkout()
+            }
         }
     }
 
@@ -177,6 +186,16 @@ struct TodayView: View {
                     .buttonStyle(.borderedProminent)
                 }
             }
+        } else if !store.sessions.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Training state updated", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.headline)
+                Text("Choose today's visible constraints above, then build the next workout. FitOS won't silently reuse hidden defaults.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 }
