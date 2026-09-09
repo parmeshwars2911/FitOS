@@ -19,9 +19,9 @@ struct HealthRecoveryCard: View {
                 if store.healthKitEnabled {
                     if let snapshot = store.recoverySnapshot {
                         HStack(spacing: 10) {
-                            signal("Sleep", value: snapshot.recentSleepHours.map { String(format: "%.1f h", $0) }) ?? "—")
-                            signal("Resting HR", value: snapshot.restingHeartRateBPM.map { String(format: "%.0f bpm", $0) }) ?? "—")
-                            signal("HRV", value: snapshot.heartRateVariabilityMS.map { String(format: "%.0f ms", $0) }) ?? "—")
+                            signal("Sleep", value: formatted(snapshot.recentSleepHours, decimals: 1, unit: "h"))
+                            signal("Resting HR", value: formatted(snapshot.restingHeartRateBPM, decimals: 0, unit: "bpm"))
+                            signal("HRV", value: formatted(snapshot.heartRateVariabilityMS, decimals: 0, unit: "ms"))
                         }
                     } else {
                         Text("Connected. Sync to bring recent recovery and body measurements into FitOS.")
@@ -73,5 +73,10 @@ struct HealthRecoveryCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(9)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func formatted(_ value: Double?, decimals: Int, unit: String) -> String {
+        guard let value else { return "—" }
+        return String(format: "%.*f %@", decimals, value, unit)
     }
 }
