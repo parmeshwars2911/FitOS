@@ -1,6 +1,6 @@
 # FitOS TestFlight Release Checklist
 
-This document is the release gate for the first iPhone beta. It complements CI; it does not replace Apple Developer / App Store Connect steps that require the account owner.
+This is the release gate for the first iPhone beta. It complements CI; it does not replace Apple Developer / App Store Connect steps that require the account owner.
 
 ## First beta policy
 
@@ -14,6 +14,7 @@ Repository defaults:
 - cloud accounts: `FITOS_CLOUD_ACCOUNTS_ENABLED = NO`
 - HealthKit: optional, read-only selected body/recovery data
 - third-party analytics / ads: none
+- local backup: explicit user export/import of versioned JSON
 
 CI intentionally fails if the cloud-account flag is changed from `NO`. Enabling accounts later must be a deliberate release change that also changes this gate.
 
@@ -42,23 +43,46 @@ Before archiving:
 
 ## Physical-device acceptance test
 
-Simulator success is not enough for HealthKit and real gym use. On at least one supported iPhone:
+Simulator success is not enough for HealthKit, Files and real gym use. On at least one supported iPhone:
 
+### First launch / persistence
 - [ ] clean install shows onboarding
 - [ ] onboarding creates conservative editable muscle targets
+- [ ] relaunch preserves settings and local data
+
+### Adaptive workout loop
 - [ ] manual workout can be logged and survives relaunch
 - [ ] Train Today changes after a partially completed workout
+- [ ] press-heavy session with under-dosed triceps/abs/traps does not immediately regenerate bench
 - [ ] generated exercises respect selected equipment
+- [ ] Bodyweight-only preset generates only bodyweight-compatible work
+- [ ] Prefer / Avoid exercise choices affect the next generated session
+- [ ] Low readiness reduces today's work and High readiness does not add extra weekly sets
 - [ ] previous loads/reps appear in the next workout
 - [ ] progressive-overload recommendation is sensible for an exercise with history
 - [ ] rest timer starts from completed sets
 - [ ] exercise replace and skip work
 - [ ] plan-acceptance metric records generated-session outcomes
+- [ ] completed generated session produces a usefulness-rating prompt
+- [ ] Beta Metrics reflects acceptance and workout ratings
+
+### Body / nutrition / HealthKit
 - [ ] body measurement guide aggregates repeated tape readings
 - [ ] an outlier body reading remains visible but does not dominate the smoothed trend
+- [ ] trend confidence changes appropriately as repeated stable data accumulates
 - [ ] nutrition entries and targets survive relaunch
 - [ ] Apple Health permission can be declined without blocking the app
 - [ ] Apple Health permission can be granted and supported metrics import without duplicates
+- [ ] HealthKit context does not silently alter the plan
+
+### Data portability / AI
+- [ ] Export Local Backup creates a readable FitOS JSON file in Files/iCloud Drive
+- [ ] backup warns that the exported file is not encrypted
+- [ ] importing a valid backup shows counts before any data changes
+- [ ] cancelling import/restore leaves current data untouched
+- [ ] confirmed restore recovers workouts, body data, targets, nutrition, plan metrics, preferences and workout ratings
+- [ ] unsupported/corrupt backup fails without replacing local data
+- [ ] local backup does not alter Apple Health authorization
 - [ ] Share AI Context opens the system share sheet and sends no data until the user chooses a destination
 - [ ] Cloud & AI shows cloud unavailable/disabled for this beta
 
@@ -79,6 +103,8 @@ Simulator success is not enough for HealthKit and real gym use. On at least one 
 
 FitOS currently uses system-provided networking/security such as `URLSession` HTTPS and Keychain, not proprietary encryption. `ITSAppUsesNonExemptEncryption` is set to `NO` in generated Info.plist settings. Re-evaluate this if a future dependency adds its own cryptography.
 
+The user-exported local backup is plain JSON; it is **not encrypted by FitOS**. This is disclosed in the backup UI. App Store privacy materials should describe the actual beta data flow, not imply that an exported file is protected after the user saves/shares it.
+
 ## Before external TestFlight
 
 - [ ] Add concise beta description and concrete “What to Test” instructions.
@@ -89,7 +115,7 @@ FitOS currently uses system-provided networking/security such as `URLSession` HT
 
 ## Before enabling cloud accounts
 
-This is a hard product/review gate, not a nice-to-have:
+This is a hard product/review gate:
 
 - [ ] dedicated FitOS Supabase project is provisioned
 - [ ] RLS and revision migration is applied
@@ -103,12 +129,10 @@ This is a hard product/review gate, not a nice-to-have:
 
 ## First beta success metrics
 
-Use the MVP targets already documented in `docs/MVP.md`:
-
 - 50+ real lifters complete at least 3 workouts
 - ≥40% of retained users use Train Today weekly
 - ≥30% D14 retention after onboarding + first workout
 - ≥60% generated-exercise acceptance
-- ≥4/5 recommendation usefulness among retained testers
+- ≥4/5 average generated-workout usefulness among retained testers
 
 For the first small internal cohort, qualitative failure reports are more important than optimizing these percentages prematurely.
