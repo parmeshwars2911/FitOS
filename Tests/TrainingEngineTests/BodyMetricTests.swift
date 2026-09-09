@@ -13,7 +13,8 @@ final class BodyMetricTests: XCTestCase {
 
         let trend = BodyTrendEngine().trend(for: .weightKg, measurements: measurements, asOf: now)
 
-        XCTAssertEqual(trend?.latestValue, 58.6, accuracy: 0.0001)
+        XCTAssertNotNil(trend)
+        XCTAssertEqual(trend?.latestValue ?? 0, 58.6, accuracy: 0.0001)
         XCTAssertEqual(trend?.previousValue ?? 0, 58.4, accuracy: 0.0001)
         XCTAssertEqual(trend?.deltaFromPrevious ?? 0, 0.2, accuracy: 0.0001)
         XCTAssertEqual(trend?.observationCount, 3)
