@@ -15,6 +15,7 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     HealthRecoveryCard()
+                    WeeklyReviewCard()
                     trainingStateSection
                     generatorSection
                     generatedWorkoutSection
