@@ -35,6 +35,22 @@ jobs:
           test "$(sips -g pixelHeight "$ICON" | awk '/pixelHeight/ {print $2}')" = '1024'
           test "$(sips -g hasAlpha "$ICON" | awk '/hasAlpha/ {print $2}')" = 'no'
 
+      - name: Validate local fitness data is excluded from device backup
+        run: |
+          grep -q 'values.isExcludedFromBackup = true' App/Persistence/LocalDataProtection.swift
+          for FILE in \
+            App/Persistence/ProfilePersistence.swift \
+            App/Persistence/WorkoutPersistence.swift \
+            App/Persistence/NutritionPersistence.swift \
+            App/Persistence/ActiveWorkoutPersistence.swift \
+            App/Persistence/WorkoutFeedbackPersistence.swift \
+            App/Persistence/WorkoutPlanAdherencePersistence.swift
+          do
+            grep -q 'LocalDataProtection.protectExistingFile' "$FILE"
+            grep -q 'LocalDataProtection.write' "$FILE"
+            ! grep -q 'data.write(to: fileURL' "$FILE"
+          done
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
