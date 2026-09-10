@@ -26,6 +26,7 @@ Before archiving:
 - [ ] `swift test` passes.
 - [ ] iOS simulator build passes.
 - [ ] `App/PrivacyInfo.xcprivacy` passes `plutil -lint`.
+- [ ] App Icon validation passes: file exists, is 1024×1024, has no alpha, and is configured as `AppIcon`.
 - [ ] marketing version and build number are set and the build number has not already been uploaded.
 - [ ] HealthKit purpose text still describes only data the app actually reads.
 - [ ] no Supabase service-role secret, user token, production credential or private signing file is committed.
@@ -37,10 +38,12 @@ Before archiving:
 - [ ] App ID / App Store Connect record exists for `com.parmeshwars2911.FitOS`.
 - [ ] Correct Apple Developer Team is selected for signing in Xcode.
 - [ ] HealthKit capability is enabled for the App ID and provisioning profile.
-- [ ] A 1024×1024 production App Icon and required asset-catalog configuration are present. **Current repo blocker until added.**
+- [x] A validated 1024×1024 opaque FitOS 0.1 beta App Icon and AppIcon asset catalog are present in the repository.
 - [x] A public Privacy Policy exists in `PRIVACY_POLICY.md` and matches the local-first 0.1 beta data flow.
 - [ ] Enter `https://github.com/parmeshwars2911/FitOS/blob/main/PRIVACY_POLICY.md` in the App Store Connect Privacy Policy URL field.
-- [ ] App Store Connect contact information and TestFlight “What to Test” copy are complete.
+- [ ] Enter the beta review contact information.
+- [ ] Paste the prepared Beta App Description / What to Test / reviewer notes from `docs/TESTFLIGHT_METADATA.md`.
+- [ ] Complete the App Store privacy questionnaire against the exact submitted build.
 
 ## Physical-device acceptance test
 
@@ -50,6 +53,7 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] clean install shows onboarding
 - [ ] onboarding creates conservative editable muscle targets
 - [ ] relaunch preserves settings and local data
+- [ ] installed build shows the FitOS App Icon correctly on the Home Screen / App Library
 
 ### Adaptive workout loop
 - [ ] manual workout can be logged and survives relaunch
@@ -71,6 +75,7 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] Today shows Resume Workout after an interrupted active session and hides new-workout generation until resume/discard
 - [ ] an unfinished recovered draft does not change training debt or plan adherence until Finish is used
 - [ ] discarding a recovered draft removes it so the next relaunch does not offer Resume Workout
+- [ ] opening and dismissing an untouched fresh workout does not create a phantom Resume Workout
 - [ ] plan-acceptance metric records generated-session outcomes
 - [ ] completed generated session produces a usefulness-rating prompt
 - [ ] Beta Metrics reflects acceptance and workout ratings
@@ -87,7 +92,7 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] Apple Health permission can be granted and supported metrics import without duplicates
 - [ ] HealthKit context does not silently alter the plan
 
-### Data portability / AI
+### Data portability / AI / support
 - [ ] Export Local Backup creates a readable FitOS JSON file in Files/iCloud Drive
 - [ ] backup warns that the exported file is not encrypted
 - [ ] importing a valid backup shows counts before any data changes
@@ -98,6 +103,8 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] local backup does not alter Apple Health authorization
 - [ ] Share AI Context opens the system share sheet and sends no data until the user chooses a destination
 - [ ] Cloud & AI shows cloud unavailable/disabled for this beta
+- [ ] Settings → Privacy policy opens the public policy without requiring a FitOS login
+- [ ] Settings → Support & feedback opens the public GitHub issue tracker
 
 ## Archive and upload
 
@@ -120,9 +127,11 @@ The user-exported local backup is plain JSON; it is **not encrypted by FitOS**. 
 
 ## Before external TestFlight
 
-- [ ] Add concise beta description and concrete “What to Test” instructions.
-- [ ] Provide beta review contact details.
-- [ ] Confirm privacy-policy URL is accessible without login.
+- [x] Prepare concise beta description and concrete “What to Test” instructions in `docs/TESTFLIGHT_METADATA.md`.
+- [x] Publish a public privacy policy.
+- [ ] Provide beta review contact details in App Store Connect.
+- [ ] Paste the prepared TestFlight copy into App Store Connect.
+- [ ] Confirm privacy-policy URL is entered and accessible without login.
 - [ ] Confirm any demo/reviewer path does not require an unavailable backend.
 - [ ] Do not enable cloud account creation merely for beta review.
 
