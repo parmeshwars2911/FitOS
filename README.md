@@ -28,9 +28,12 @@ The original regression scenario is protected by automated tests: after a press-
 
 ### Workout experience
 - sets, reps, load and RIR logging
+- only sets explicitly marked DONE are persisted as completed work
 - previous-set values inline
 - add / replace / skip exercise
 - rest timer
+- dirty-workout dismissal protection with explicit discard confirmation
+- on-device active-workout autosave and Resume Workout after interruption/relaunch
 - local workout history
 - editable weekly muscle targets and focus priorities
 
