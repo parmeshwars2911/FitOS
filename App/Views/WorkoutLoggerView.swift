@@ -6,6 +6,8 @@ struct WorkoutLoggerView: View {
 
     @State private var drafts: [ExerciseDraft]
     @State private var initialDraftFingerprint: String
+    @State private var draftStartedAt: Date
+    @State private var startedFromSavedDraft: Bool
     @State private var showingExercisePicker = false
     @State private var replacementDraftID: UUID?
     @State private var restSeconds = 120
@@ -14,9 +16,21 @@ struct WorkoutLoggerView: View {
 
     private let plannedExerciseIDs: [String]
 
-    init(plan: GeneratedWorkout?, catalog: [ExerciseDefinition]) {
+    init(
+        plan: GeneratedWorkout?,
+        savedDraft: ActiveWorkoutDraft? = nil,
+        catalog: [ExerciseDefinition]
+    ) {
         let initialDrafts: [ExerciseDraft]
-        if let plan, !plan.exercises.isEmpty {
+        let startedAt: Date
+        let resumed: Bool
+
+        if let savedDraft {
+            initialDrafts = savedDraft.exercises
+            plannedExerciseIDs = savedDraft.plannedExerciseIDs
+            startedAt = savedDraft.startedAt
+            resumed = true
+        } else if let plan, !plan.exercises.isEmpty {
             initialDrafts = plan.exercises.map {
                 ExerciseDraft(
                     exercise: $0.exercise,
@@ -27,16 +41,23 @@ struct WorkoutLoggerView: View {
                 )
             }
             plannedExerciseIDs = plan.exercises.map(\.exercise.id)
+            startedAt = Date()
+            resumed = false
         } else {
             initialDrafts = []
             plannedExerciseIDs = []
+            startedAt = Date()
+            resumed = false
         }
+
         _drafts = State(initialValue: initialDrafts)
         _initialDraftFingerprint = State(initialValue: workoutDraftFingerprint(initialDrafts))
+        _draftStartedAt = State(initialValue: startedAt)
+        _startedFromSavedDraft = State(initialValue: resumed)
     }
 
     private var hasUnsavedChanges: Bool {
-        workoutDraftFingerprint(drafts) != initialDraftFingerprint
+        startedFromSavedDraft || workoutDraftFingerprint(drafts) != initialDraftFingerprint
     }
 
     private var hasCompletedSets: Bool {
@@ -49,6 +70,16 @@ struct WorkoutLoggerView: View {
         NavigationStack {
             List {
                 restTimerSection
+
+                if startedFromSavedDraft {
+                    Section {
+                        Label("Recovered active workout", systemImage: "arrow.clockwise.circle.fill")
+                            .font(.subheadline.weight(.semibold))
+                        Text("Your exercise edits and completed-set markers were restored from this device.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
                 if drafts.isEmpty {
                     ContentUnavailableView(
@@ -117,12 +148,19 @@ struct WorkoutLoggerView: View {
             .navigationTitle("Workout")
             .navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(hasUnsavedChanges)
+            .onAppear {
+                persistActiveDraft()
+            }
+            .onChange(of: workoutDraftFingerprint(drafts)) { _, _ in
+                persistActiveDraft()
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         if hasUnsavedChanges {
                             showingDiscardConfirmation = true
                         } else {
+                            store.discardActiveWorkoutDraft()
                             dismiss()
                         }
                     }
@@ -138,11 +176,12 @@ struct WorkoutLoggerView: View {
                 titleVisibility: .visible
             ) {
                 Button("Discard workout", role: .destructive) {
+                    store.discardActiveWorkoutDraft()
                     dismiss()
                 }
                 Button("Keep workout", role: .cancel) {}
             } message: {
-                Text("Your edited sets, loads, reps, RIR and exercise changes have not been saved yet.")
+                Text("Your active workout draft and unsaved set data will be deleted from this device.")
             }
             .sheet(isPresented: $showingExercisePicker, onDismiss: {
                 replacementDraftID = nil
@@ -235,6 +274,16 @@ struct WorkoutLoggerView: View {
 
     private func formattedDuration(_ seconds: Int) -> String {
         String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    private func persistActiveDraft() {
+        let draft = ActiveWorkoutDraft(
+            startedAt: draftStartedAt,
+            updatedAt: Date(),
+            plannedExerciseIDs: plannedExerciseIDs,
+            exercises: drafts
+        )
+        store.saveActiveWorkoutDraft(draft)
     }
 
     private func finishWorkout() {

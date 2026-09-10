@@ -6,6 +6,7 @@ struct TodayView: View {
     @State private var equipmentPreset: EquipmentPreset = .fullGym
     @State private var readiness: SessionReadiness = .normal
     @State private var showingLogger = false
+    @State private var showingActiveDraftDiscardConfirmation = false
 
     private var priorityMuscles: [MuscleState] { Array(store.trainingState.muscles.prefix(6)) }
 
@@ -15,18 +16,38 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     RecommendationFeedbackCard()
+                    activeWorkoutSection
                     HealthRecoveryCard()
                     WeeklyReviewCard()
                     trainingStateSection
-                    generatorSection
-                    generatedWorkoutSection
+
+                    if store.activeWorkoutDraft == nil {
+                        generatorSection
+                        generatedWorkoutSection
+                    }
                 }
                 .padding()
             }
             .navigationTitle("FitOS")
             .sheet(isPresented: $showingLogger) {
-                WorkoutLoggerView(plan: store.generatedWorkout, catalog: store.catalog)
-                    .environmentObject(store)
+                WorkoutLoggerView(
+                    plan: store.activeWorkoutDraft == nil ? store.generatedWorkout : nil,
+                    savedDraft: store.activeWorkoutDraft,
+                    catalog: store.catalog
+                )
+                .environmentObject(store)
+            }
+            .confirmationDialog(
+                "Discard the saved active workout?",
+                isPresented: $showingActiveDraftDiscardConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Discard workout", role: .destructive) {
+                    store.discardActiveWorkoutDraft()
+                }
+                Button("Keep workout", role: .cancel) {}
+            } message: {
+                Text("The saved in-progress exercise edits and DONE markers will be deleted. Completed workout history is not affected.")
             }
             .onChange(of: durationMinutes) { _, _ in
                 store.invalidateGeneratedWorkout()
@@ -45,6 +66,49 @@ struct TodayView: View {
             Text("Train what needs attention.").font(.title2.bold())
             Text("FitOS uses what you actually completed—not the workout you intended to do.")
                 .font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var activeWorkoutSection: some View {
+        if let draft = store.activeWorkoutDraft {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Label("Workout in progress", systemImage: "figure.strengthtraining.traditional")
+                        .font(.headline)
+                    Spacer()
+                    Text(draft.updatedAt, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("\(draft.exercises.count) exercises · \(draft.completedSetCount) sets marked DONE")
+                    .font(.subheadline)
+
+                Text("Resume this session before building another workout. Unfinished work does not affect training debt until you finish the workout.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack {
+                    Button {
+                        showingLogger = true
+                    } label: {
+                        Label("Resume Workout", systemImage: "play.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button(role: .destructive) {
+                        showingActiveDraftDiscardConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Discard active workout")
+                }
+            }
+            .padding(14)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 

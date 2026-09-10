@@ -5,6 +5,7 @@ import Foundation
 final class AppStore: ObservableObject {
     @Published private(set) var sessions: [WorkoutSession]
     @Published private(set) var generatedWorkout: GeneratedWorkout?
+    @Published private(set) var activeWorkoutDraft: ActiveWorkoutDraft?
     @Published private(set) var measurements: [BodyMeasurement]
     @Published private(set) var targets: [MuscleTarget]
     @Published private(set) var nutritionEntries: [NutritionEntry]
@@ -21,6 +22,7 @@ final class AppStore: ObservableObject {
     private let profilePersistence: ProfilePersistence
     private let nutritionPersistence: NutritionPersistence
     private let planAdherencePersistence: WorkoutPlanAdherencePersistence
+    private let activeWorkoutPersistence: ActiveWorkoutPersistence
     private let healthKitService: HealthKitService
     private let userDefaults: UserDefaults
     private let engine = TrainingStateEngine()
@@ -39,6 +41,7 @@ final class AppStore: ObservableObject {
         profilePersistence: ProfilePersistence = ProfilePersistence(),
         nutritionPersistence: NutritionPersistence = NutritionPersistence(),
         planAdherencePersistence: WorkoutPlanAdherencePersistence = WorkoutPlanAdherencePersistence(),
+        activeWorkoutPersistence: ActiveWorkoutPersistence = ActiveWorkoutPersistence(),
         healthKitService: HealthKitService? = nil,
         userDefaults: UserDefaults = .standard
     ) {
@@ -46,6 +49,7 @@ final class AppStore: ObservableObject {
         self.profilePersistence = profilePersistence
         self.nutritionPersistence = nutritionPersistence
         self.planAdherencePersistence = planAdherencePersistence
+        self.activeWorkoutPersistence = activeWorkoutPersistence
         self.healthKitService = healthKitService ?? HealthKitService()
         self.userDefaults = userDefaults
         self.sessions = persistence.load()
@@ -56,6 +60,7 @@ final class AppStore: ObservableObject {
         self.nutritionEntries = nutrition.entries.sorted { $0.recordedAt > $1.recordedAt }
         self.nutritionTarget = nutrition.target
         self.planAdherenceRecords = planAdherencePersistence.load().sorted { $0.recordedAt > $1.recordedAt }
+        self.activeWorkoutDraft = activeWorkoutPersistence.load()
         self.healthKitEnabled = userDefaults.bool(forKey: healthKitEnabledKey)
         self.generatedWorkout = nil
     }
@@ -132,6 +137,16 @@ final class AppStore: ObservableObject {
         generatedWorkout = nil
     }
 
+    func saveActiveWorkoutDraft(_ draft: ActiveWorkoutDraft) {
+        activeWorkoutDraft = draft
+        activeWorkoutPersistence.save(draft)
+    }
+
+    func discardActiveWorkoutDraft() {
+        activeWorkoutDraft = nil
+        activeWorkoutPersistence.clear()
+    }
+
     func complete(_ session: WorkoutSession, plannedExerciseIDs: [String] = [], outcomes: [WorkoutPlanOutcome] = []) {
         sessions.append(session)
         sessions.sort { $0.completedAt > $1.completedAt }
@@ -148,6 +163,8 @@ final class AppStore: ObservableObject {
             planAdherenceRecords.sort { $0.recordedAt > $1.recordedAt }
             planAdherencePersistence.save(planAdherenceRecords)
         }
+
+        discardActiveWorkoutDraft()
 
         // Completing a workout changes training state. Do not silently build the next
         // session with hidden default constraints; Today should rebuild using the
@@ -281,6 +298,7 @@ final class AppStore: ObservableObject {
         nutritionTarget = archive.nutritionTarget
         planAdherenceRecords = archive.planAdherenceRecords.sorted { $0.recordedAt > $1.recordedAt }
         generatedWorkout = nil
+        discardActiveWorkoutDraft()
 
         workoutPersistence.save(sessions)
         saveProfile()
@@ -304,6 +322,7 @@ final class AppStore: ObservableObject {
         nutritionTarget = snapshot.nutritionTarget
         planAdherenceRecords = []
         generatedWorkout = nil
+        discardActiveWorkoutDraft()
         workoutPersistence.save(sessions)
         saveProfile()
         saveNutrition()
