@@ -19,6 +19,8 @@ jobs:
       - name: Validate beta release metadata
         run: |
           plutil -lint App/PrivacyInfo.xcprivacy
+          plutil -lint App/FitOS.entitlements
+          test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.healthkit' App/FitOS.entitlements)" = 'true'
           grep -Eq 'MARKETING_VERSION: "[0-9]+\.[0-9]+\.[0-9]+"' project.yml
           grep -Eq 'CURRENT_PROJECT_VERSION: "[0-9]+"' project.yml
           grep -q 'FITOS_CLOUD_ACCOUNTS_ENABLED: "NO"' project.yml
@@ -66,3 +68,25 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Build unsigned iPhone archive
+        run: |
+          rm -rf build/FitOS.xcarchive
+          xcodebuild \
+            -project FitOS.xcodeproj \
+            -scheme FitOS \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/FitOS.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+
+      - name: Validate archived app metadata
+        run: |
+          PLIST='build/FitOS.xcarchive/Products/Applications/FitOS.app/Info.plist'
+          test -f "$PLIST"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")" = 'com.parmeshwars2911.FitOS'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")" = '0.1.0'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")" = '1'
+          /usr/libexec/PlistBuddy -c 'Print :NSHealthShareUsageDescription' "$PLIST" | grep -q 'Apple Health'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$PLIST")" = 'false'
