@@ -8,7 +8,7 @@ FitOS is an adaptive strength-training app for people whose real gym week rarely
 
 Instead of assuming you completed the workout you planned, FitOS uses the sets you actually logged to estimate recent muscle stimulus, remaining training debt, and recovery. Tap **Build Today's Workout** and FitOS constructs a session around what still needs useful work, while respecting your available time, equipment, exercise preferences, and how ready you feel today.
 
-The beta also includes workout history and strength trends, conservative progressive-overload guidance, body-measurement trend smoothing, guided repeat measurements, quick macro logging, an optional read-only Apple Health connection, deterministic weekly coaching summaries, explicit AI-context sharing, and local backup/restore.
+The beta also includes workout history and strength trends, conservative progressive-overload guidance, body-measurement trend smoothing, guided repeat measurements, quick macro logging, an optional read-only Apple Health connection, deterministic weekly coaching summaries, explicit AI-context sharing, active-workout recovery, aggregate beta-report sharing, and local backup/restore.
 
 FitOS 0.1 is intentionally local-first. No account is required and cloud account creation is disabled in this beta.
 
@@ -33,17 +33,27 @@ Build the same general session with Low, Normal and High readiness. Low should r
 ### 4. Progression
 Repeat an exercise across workouts and check the previous-performance and suggested-load guidance. Please flag suggestions that are obviously too aggressive or too conservative.
 
-### 5. Body-data noise
+### 5. Interrupted workout recovery
+Start a workout, change at least one load/reps/RIR value and mark at least one set DONE. Then force-quit FitOS and reopen it. Today should show **Workout in progress** and Resume Workout should restore the exercise edits and DONE markers. An unfinished recovered draft must not change training debt until you actually Finish the workout.
+
+Also verify that simply opening a workout and dismissing it without changing anything does **not** create a phantom Resume Workout.
+
+### 6. Body-data noise
 Use the guided repeat-measurement flow for waist/arm/chest/thigh measurements. Add several normal readings and, if comfortable, one intentionally unusual test reading. The raw value should remain visible without immediately dominating the smoothed trend.
 
-### 6. Apple Health
+### 7. Apple Health
 Test both paths: decline Health access, and grant only the Health permissions you are comfortable sharing. FitOS should remain usable either way and should not create duplicate imported body records after repeated syncs.
 
-### 7. Feedback metrics
-After completing a FitOS-generated session, rate how useful it was from 1–5. If the rating is 1–3, choose what was wrong. Check Settings → Beta Metrics to confirm the rating and generated-exercise acceptance are reflected.
+### 8. Feedback metrics and beta report
+After every FitOS-generated session, rate how useful it was from 1–5. If the rating is 1–3, choose what was wrong. Check Settings → Beta Metrics to confirm the rating and generated-exercise acceptance are reflected.
 
-### 8. Local backup
-Export a FitOS backup to Files/iCloud Drive, add or change some local data, then import the backup. FitOS must show backup details and require explicit confirmation before replacing current data. The backup file is plain JSON, so please treat it as sensitive fitness information.
+After you have completed **at least 3 generated workouts**, use **Share beta report** from Beta Metrics and send the JSON with your feedback. The report contains aggregate counts/rates and app/build version only; it does not include individual workout IDs, exercise IDs, sets/load/reps, body measurements, nutrition values, Apple Health values, account details, or device identifiers.
+
+### 9. Local backup
+Export a FitOS backup to local Files storage, preferably **On My iPhone**, add or change some local data, then import the backup. Do not choose iCloud Drive for this HealthKit-enabled beta. FitOS must show backup details and require explicit confirmation before replacing current data. The backup file is plain JSON, so please treat it as sensitive fitness information.
+
+### 10. Privacy and support links
+Open Settings → Privacy policy and Settings → Support & feedback. Both should open publicly without requiring a FitOS account.
 
 ## Highest-value feedback
 
@@ -56,18 +66,23 @@ When reporting a bad generated workout, please include:
 - which generated exercises you replaced or skipped
 - why the recommendation was wrong (fatigue, wrong muscle priority, disliked movement, equipment unavailable, too much/too little volume, etc.)
 
-Screenshots are useful when they do not expose information you do not want to share.
+Screenshots are useful when they do not expose information you do not want to share. The aggregate beta report helps quantify behavior across sessions, but it does not replace the explanation of **why** a recommendation felt wrong.
 
 ## Beta Review Notes
 
 - **No login or test account is required.**
 - Cloud account creation is intentionally disabled in the FitOS 0.1 beta.
 - The primary reviewer path is: onboarding → Today → Build Today's Workout → Start Workout → complete sets → Finish → return to Today.
+- Only sets explicitly marked DONE are saved as completed training.
+- An edited active workout is saved on-device and can be resumed after interruption/relaunch.
 - Apple Health access is optional. Declining it does not block the app.
 - HealthKit access is read-only for selected body/recovery information.
 - The app has no advertising SDK and no third-party analytics SDK in this beta.
+- Share beta report is user initiated and contains aggregate beta metrics only.
 - Share AI Context is user initiated and uses the iOS share sheet; the app does not automatically send context to an AI provider.
-- Local backup export is user initiated and produces an unencrypted JSON file.
+- Local backup export is user initiated and produces an unencrypted JSON file. FitOS does not automatically upload backup files to iCloud; the beta instructs users to keep exports in local device storage such as On My iPhone.
+- Privacy policy: `https://github.com/parmeshwars2911/FitOS/blob/main/PRIVACY_POLICY.md`
+- Support/feedback: `https://github.com/parmeshwars2911/FitOS/issues`
 
 ## Suggested Internal Tester Message
 
@@ -75,13 +90,15 @@ FitOS is testing one main idea: your workout plan should adapt to what you **act
 
 For the first few workouts, please use it normally—even if you skip exercises, stop early, or change movements because the gym is busy. Those imperfect sessions are exactly what we need to test. After each generated workout, rate whether FitOS's recommendation was genuinely useful.
 
+After at least 3 generated workouts, please open **Settings → Beta Metrics → Share beta report** and include that aggregate JSON with your feedback. It contains aggregate product metrics, not your raw workout/body/nutrition/Health data.
+
 The most valuable bug report is not “I didn't like it”; it is “I trained X and Y recently, FitOS recommended Z, but I expected A because ___.”
 
 ## App Store Connect fields still requiring owner input
 
 - beta review contact name/email/phone
-- public Privacy Policy URL
-- final App Icon
-- support URL if different from the repository
+- paste the public Privacy Policy URL
+- confirm the final App Icon in the submitted build
+- support URL if a destination other than the repository issue tracker is preferred
 - Apple Developer signing/team information
 - any required App Store privacy questionnaire selections

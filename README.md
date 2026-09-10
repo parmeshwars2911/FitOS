@@ -58,6 +58,8 @@ The original regression scenario is protected by automated tests: after a press-
 - versioned cloud snapshot contract with stale-write protection
 - Supabase email-OTP / backup / restore implementation with Keychain token storage
 - read-only MCP contract design for a future separately authorized external-AI surface
+- public in-app Privacy Policy and Support & feedback routes
+- validated 1024×1024 opaque App Icon asset for the 0.1 beta
 
 Cloud account creation is **deliberately disabled in the first TestFlight build**. The cloud code is present for later activation, but enabling it is blocked until account deletion, backend deployment, privacy disclosures and security acceptance tests are complete.
 
@@ -83,8 +85,9 @@ Every feature PR must pass:
 
 1. TrainingEngine tests
 2. beta privacy/release metadata validation
-3. XcodeGen project generation
-4. full iOS simulator build
+3. App Store icon validation (presence, 1024×1024 dimensions and no alpha)
+4. XcodeGen project generation
+5. full iOS simulator build
 
 ## Current product loop
 
@@ -118,12 +121,12 @@ The public beta privacy policy is maintained in [`PRIVACY_POLICY.md`](PRIVACY_PO
 
 ## TestFlight blockers outside the codebase
 
-The codebase has release gates, but these still require product/account-owner work:
+The remaining blockers now require product/account-owner or physical-device work:
 
-- production App Icon / asset catalog
 - Apple Developer Program / App Store Connect setup, signing and HealthKit capability
-- enter the public Privacy Policy URL in App Store Connect
-- physical-device acceptance testing
+- enter the public Privacy Policy URL and prepared TestFlight metadata in App Store Connect
+- archive/validate/upload with the correct Apple Developer team
+- physical-device acceptance testing and internal tester rollout
 
 See [`docs/TESTFLIGHT_CHECKLIST.md`](docs/TESTFLIGHT_CHECKLIST.md).
 

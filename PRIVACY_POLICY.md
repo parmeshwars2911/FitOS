@@ -33,7 +33,7 @@ Apple Health access is optional. You can use FitOS without granting Health acces
 
 FitOS does not write data to Apple Health in the 0.1 beta. It does not use Health data for advertising, marketing profiles, or data brokerage. FitOS may keep local copies of supported Health measurements it imports so that it can calculate body trends. Health authorization can be changed through Apple's Health/privacy controls.
 
-FitOS currently displays sleep, resting-heart-rate and HRV information as context only. The 0.1 beta does not silently change a workout because of a single Health reading.
+FitOS does not automatically store or synchronize personal health information to iCloud. FitOS currently displays sleep, resting-heart-rate and HRV information as context only. The 0.1 beta does not silently change a workout because of a single Health reading.
 
 ## 3. Adaptive fitness calculations
 
@@ -49,7 +49,7 @@ When you choose Share AI Context, FitOS prepares a structured summary and opens 
 
 ## 5. Local backup export and import
 
-FitOS lets you explicitly export a versioned local backup file. A backup can include FitOS-managed information such as:
+FitOS lets you explicitly export a versioned backup file. A backup can include FitOS-managed information such as:
 
 - workouts
 - body measurements, including supported measurements previously imported from Apple Health
@@ -59,7 +59,9 @@ FitOS lets you explicitly export a versioned local backup file. A backup can inc
 - generated-plan adherence records
 - workout usefulness ratings
 
-**FitOS backup files are plain JSON and are not encrypted by FitOS.** Treat exported backups as sensitive fitness information. The privacy and security of a backup after export depend on where you save, copy, upload, or share that file.
+**FitOS backup files are plain JSON and are not encrypted by FitOS.** Treat exported backups as sensitive fitness information. FitOS does not automatically upload backup files to iCloud or another storage provider. For the HealthKit-enabled 0.1 beta, the app instructs users to keep exported backups in local device storage such as **On My iPhone** rather than iCloud Drive.
+
+If you deliberately move, copy, or share an exported backup to another application or storage provider, that destination controls the file under its own privacy and security terms.
 
 FitOS does not include Keychain credentials, cloud authentication tokens, backend secrets, or Apple Health authorization state in a local backup.
 
@@ -89,13 +91,13 @@ FitOS local data remains on the device until it is removed through available app
 
 Deleting FitOS does not delete the original records stored in Apple Health because FitOS has read-only Health access. You can manage Apple Health records and FitOS's Health permissions through Apple's controls.
 
-Files you previously exported from FitOS are outside the app's storage. Removing the app does not delete copies you saved to Files, iCloud Drive, another storage provider, or another application. You must delete those copies from the location where you stored them if you no longer want to keep them.
+Files you explicitly export from FitOS are outside the app's storage. Removing the app does not delete those copies. You must delete exported copies from wherever you placed or shared them if you no longer want to keep them.
 
 ## 9. Security
 
 FitOS is designed to keep the first beta local-first and to minimize unnecessary data transmission. Local app data is protected by the security controls provided by iOS and the device.
 
-No method of storage is completely risk-free. In particular, user-exported FitOS JSON backups are intentionally portable and are not encrypted by FitOS. Store exported files appropriately.
+No method of storage is completely risk-free. In particular, user-exported FitOS JSON backups are intentionally portable and are not encrypted by FitOS. For the 0.1 beta, keep backup files in local device storage and handle any deliberate sharing as sensitive fitness information.
 
 ## 10. Medical and wellness information
 
