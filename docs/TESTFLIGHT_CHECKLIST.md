@@ -38,7 +38,8 @@ Before archiving:
 - [ ] Correct Apple Developer Team is selected for signing in Xcode.
 - [ ] HealthKit capability is enabled for the App ID and provisioning profile.
 - [ ] A 1024×1024 production App Icon and required asset-catalog configuration are present. **Current repo blocker until added.**
-- [ ] A public Privacy Policy URL exists and matches the actual beta data flow. **Current external blocker until hosted.**
+- [x] A public Privacy Policy exists in `PRIVACY_POLICY.md` and matches the local-first 0.1 beta data flow.
+- [ ] Enter `https://github.com/parmeshwars2911/FitOS/blob/main/PRIVACY_POLICY.md` in the App Store Connect Privacy Policy URL field.
 - [ ] App Store Connect contact information and TestFlight “What to Test” copy are complete.
 
 ## Physical-device acceptance test

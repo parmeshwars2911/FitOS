@@ -114,13 +114,15 @@ The first beta is deliberately narrow:
 
 Testers can export a versioned local FitOS backup before reinstalling. Backup JSON is not encrypted and is explicitly treated as sensitive fitness data.
 
+The public beta privacy policy is maintained in [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
+
 ## TestFlight blockers outside the codebase
 
 The codebase has release gates, but these still require product/account-owner work:
 
 - production App Icon / asset catalog
-- public hosted Privacy Policy URL
 - Apple Developer Program / App Store Connect setup, signing and HealthKit capability
+- enter the public Privacy Policy URL in App Store Connect
 - physical-device acceptance testing
 
 See [`docs/TESTFLIGHT_CHECKLIST.md`](docs/TESTFLIGHT_CHECKLIST.md).
