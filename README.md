@@ -25,6 +25,7 @@ The original regression scenario is protected by automated tests: after a press-
 - estimated 1RM / strength trends
 - generated-exercise acceptance tracking
 - 1–5 generated-workout usefulness feedback + beta metrics
+- explicit aggregate beta-report sharing with no raw workout/body/nutrition/HealthKit records
 
 ### Workout experience
 - sets, reps, load and RIR logging
