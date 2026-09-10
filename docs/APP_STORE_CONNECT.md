@@ -79,13 +79,14 @@ Official references:
 
 Apple’s Health/Fitness review rules state that apps using HealthKit may not store personal health information in iCloud.
 
-FitOS 0.1 release policy:
+FitOS 0.1 release policy and implementation:
 
 - no CloudKit/iCloud health-data synchronization
 - cloud accounts disabled
 - FitOS does not automatically upload manual backup exports to iCloud
 - beta UI tells users to save explicit backup exports locally, such as **On My iPhone**, rather than iCloud Drive
-- local FitOS persistence should be marked excluded from normal device backup eligibility before archive
+- all six FitOS local JSON persistence stores are marked `isExcludedFromBackup = true`, including the profile/body file that can contain HealthKit-imported measurements
+- the CI release gate verifies that every local persistence store uses the protected write path and protects pre-existing files on upgrade
 
 Official reference: `https://developer.apple.com/app-store/review/guidelines/`
 
