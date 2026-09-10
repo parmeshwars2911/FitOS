@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct SettingsView: View {
+    private let privacyPolicyURL = URL(string: "https://github.com/parmeshwars2911/FitOS/blob/main/PRIVACY_POLICY.md")!
+    private let supportURL = URL(string: "https://github.com/parmeshwars2911/FitOS/issues")!
+
     var body: some View {
         NavigationStack {
             List {
@@ -43,6 +46,16 @@ struct SettingsView: View {
                         AIContextShareView()
                     } label: {
                         Label("Share AI context", systemImage: "square.and.arrow.up")
+                    }
+                }
+
+                Section("About") {
+                    Link(destination: privacyPolicyURL) {
+                        Label("Privacy policy", systemImage: "hand.raised")
+                    }
+
+                    Link(destination: supportURL) {
+                        Label("Support & feedback", systemImage: "questionmark.bubble")
                     }
                 }
             }
