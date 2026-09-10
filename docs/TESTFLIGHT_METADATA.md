@@ -50,7 +50,7 @@ After every FitOS-generated session, rate how useful it was from 1–5. If the r
 After you have completed **at least 3 generated workouts**, use **Share beta report** from Beta Metrics and send the JSON with your feedback. The report contains aggregate counts/rates and app/build version only; it does not include individual workout IDs, exercise IDs, sets/load/reps, body measurements, nutrition values, Apple Health values, account details, or device identifiers.
 
 ### 9. Local backup
-Export a FitOS backup to Files/iCloud Drive, add or change some local data, then import the backup. FitOS must show backup details and require explicit confirmation before replacing current data. The backup file is plain JSON, so please treat it as sensitive fitness information.
+Export a FitOS backup to local Files storage, preferably **On My iPhone**, add or change some local data, then import the backup. Do not choose iCloud Drive for this HealthKit-enabled beta. FitOS must show backup details and require explicit confirmation before replacing current data. The backup file is plain JSON, so please treat it as sensitive fitness information.
 
 ### 10. Privacy and support links
 Open Settings → Privacy policy and Settings → Support & feedback. Both should open publicly without requiring a FitOS account.
@@ -80,7 +80,7 @@ Screenshots are useful when they do not expose information you do not want to sh
 - The app has no advertising SDK and no third-party analytics SDK in this beta.
 - Share beta report is user initiated and contains aggregate beta metrics only.
 - Share AI Context is user initiated and uses the iOS share sheet; the app does not automatically send context to an AI provider.
-- Local backup export is user initiated and produces an unencrypted JSON file.
+- Local backup export is user initiated and produces an unencrypted JSON file. FitOS does not automatically upload backup files to iCloud; the beta instructs users to keep exports in local device storage such as On My iPhone.
 - Privacy policy: `https://github.com/parmeshwars2911/FitOS/blob/main/PRIVACY_POLICY.md`
 - Support/feedback: `https://github.com/parmeshwars2911/FitOS/issues`
 
