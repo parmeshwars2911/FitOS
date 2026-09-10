@@ -73,6 +73,9 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] plan-acceptance metric records generated-session outcomes
 - [ ] completed generated session produces a usefulness-rating prompt
 - [ ] Beta Metrics reflects acceptance and workout ratings
+- [ ] Beta Metrics exercise acceptance equals accepted planned exercises / all planned exercises across generated workouts
+- [ ] Share beta report opens the system share sheet and does not transmit until the user chooses a destination
+- [ ] shared beta-report JSON contains aggregate counts/rates/reason totals but no workout/exercise IDs, set/load/reps, body/nutrition/HealthKit values, account details or device identifiers
 
 ### Body / nutrition / HealthKit
 - [ ] body measurement guide aggregates repeated tape readings
