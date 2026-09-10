@@ -7,6 +7,7 @@ final class WorkoutPlanAdherencePersistence {
         let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.fileURL = directory.appendingPathComponent("fitos-plan-adherence.json")
+        LocalDataProtection.protectExistingFile(at: self.fileURL)
     }
 
     func load() -> [WorkoutPlanAdherence] {
@@ -21,6 +22,6 @@ final class WorkoutPlanAdherencePersistence {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(records) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+        LocalDataProtection.write(data, to: fileURL)
     }
 }

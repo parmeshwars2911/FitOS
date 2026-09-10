@@ -12,6 +12,7 @@ final class ProfilePersistence {
         let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.fileURL = directory.appendingPathComponent("fitos-profile.json")
+        LocalDataProtection.protectExistingFile(at: self.fileURL)
     }
 
     func load(defaultTargets: [MuscleTarget]) -> FitProfileSnapshot {
@@ -37,6 +38,6 @@ final class ProfilePersistence {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(snapshot) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+        LocalDataProtection.write(data, to: fileURL)
     }
 }

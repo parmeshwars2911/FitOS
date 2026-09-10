@@ -7,6 +7,7 @@ final class WorkoutFeedbackPersistence {
         let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.fileURL = directory.appendingPathComponent("fitos-workout-feedback.json")
+        LocalDataProtection.protectExistingFile(at: self.fileURL)
     }
 
     func load() -> [WorkoutRecommendationFeedback] {
@@ -21,6 +22,6 @@ final class WorkoutFeedbackPersistence {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(records) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+        LocalDataProtection.write(data, to: fileURL)
     }
 }
