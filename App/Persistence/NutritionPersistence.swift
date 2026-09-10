@@ -12,6 +12,7 @@ final class NutritionPersistence {
         let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.fileURL = directory.appendingPathComponent("fitos-nutrition.json")
+        LocalDataProtection.protectExistingFile(at: self.fileURL)
     }
 
     func load() -> NutritionSnapshot {
@@ -31,6 +32,6 @@ final class NutritionPersistence {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(snapshot) else { return }
-        try? data.write(to: fileURL, options: .atomic)
+        LocalDataProtection.write(data, to: fileURL)
     }
 }
