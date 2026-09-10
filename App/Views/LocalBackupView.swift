@@ -39,7 +39,7 @@ struct LocalBackupView: View {
 
             Section("Privacy") {
                 Label("Backup files are not encrypted", systemImage: "exclamationmark.shield")
-                Text("Treat an exported backup as sensitive fitness data. Store or share it only where you are comfortable. Keychain tokens, cloud credentials, and Apple Health authorization are never included.")
+                Text("Treat an exported backup as sensitive fitness data. For this HealthKit-enabled beta, keep exported backups in local device storage such as On My iPhone rather than iCloud Drive. FitOS never uploads backup files to iCloud automatically. Keychain tokens, cloud credentials, and Apple Health authorization are never included.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -76,7 +76,7 @@ struct LocalBackupView: View {
         ) { result in
             switch result {
             case .success:
-                statusMessage = "Backup exported."
+                statusMessage = "Backup exported. Keep the file in local device storage for this beta."
             case .failure(let error):
                 statusMessage = "Export failed: \(error.localizedDescription)"
             }
