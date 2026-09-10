@@ -62,6 +62,10 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] progressive-overload recommendation is sensible for an exercise with history
 - [ ] rest timer starts from completed sets
 - [ ] exercise replace and skip work
+- [ ] unchecked prefilled set rows are not saved when the workout finishes
+- [ ] Finish stays disabled until at least one set is marked DONE
+- [ ] after editing a workout, swipe-to-dismiss is blocked and Cancel requires destructive discard confirmation
+- [ ] an untouched workout can still be cancelled without a discard warning
 - [ ] plan-acceptance metric records generated-session outcomes
 - [ ] completed generated session produces a usefulness-rating prompt
 - [ ] Beta Metrics reflects acceptance and workout ratings
