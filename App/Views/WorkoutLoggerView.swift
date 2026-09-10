@@ -5,10 +5,12 @@ struct WorkoutLoggerView: View {
     @EnvironmentObject private var store: AppStore
 
     @State private var drafts: [ExerciseDraft]
+    @State private var initialDraftFingerprint: String
     @State private var showingExercisePicker = false
     @State private var replacementDraftID: UUID?
     @State private var restSeconds = 120
     @State private var restEndDate: Date?
+    @State private var showingDiscardConfirmation = false
 
     private let plannedExerciseIDs: [String]
 
@@ -30,6 +32,17 @@ struct WorkoutLoggerView: View {
             plannedExerciseIDs = []
         }
         _drafts = State(initialValue: initialDrafts)
+        _initialDraftFingerprint = State(initialValue: workoutDraftFingerprint(initialDrafts))
+    }
+
+    private var hasUnsavedChanges: Bool {
+        workoutDraftFingerprint(drafts) != initialDraftFingerprint
+    }
+
+    private var hasCompletedSets: Bool {
+        drafts.contains { draft in
+            draft.sets.contains { $0.isCompleted && $0.reps > 0 }
+        }
     }
 
     var body: some View {
@@ -103,14 +116,33 @@ struct WorkoutLoggerView: View {
             }
             .navigationTitle("Workout")
             .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(hasUnsavedChanges)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") {
+                        if hasUnsavedChanges {
+                            showingDiscardConfirmation = true
+                        } else {
+                            dismiss()
+                        }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Finish") { finishWorkout() }
-                        .disabled(drafts.isEmpty)
+                        .disabled(!hasCompletedSets)
                 }
+            }
+            .confirmationDialog(
+                "Discard this workout?",
+                isPresented: $showingDiscardConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Discard workout", role: .destructive) {
+                    dismiss()
+                }
+                Button("Keep workout", role: .cancel) {}
+            } message: {
+                Text("Your edited sets, loads, reps, RIR and exercise changes have not been saved yet.")
             }
             .sheet(isPresented: $showingExercisePicker, onDismiss: {
                 replacementDraftID = nil
@@ -211,7 +243,7 @@ struct WorkoutLoggerView: View {
 
         for draft in drafts {
             let sets = draft.sets
-                .filter { $0.reps > 0 }
+                .filter { $0.isCompleted && $0.reps > 0 }
                 .map { CompletedSet(reps: $0.reps, loadKg: max(0, $0.loadKg), rir: max(0, $0.rir)) }
             guard !sets.isEmpty else { continue }
 
@@ -377,4 +409,25 @@ private struct ExercisePickerView: View {
             .searchable(text: $query, prompt: "Exercise, muscle, equipment")
         }
     }
+}
+
+private func workoutDraftFingerprint(_ drafts: [ExerciseDraft]) -> String {
+    drafts.map { draft in
+        let sets = draft.sets.map { set in
+            [
+                set.id.uuidString,
+                String(set.reps),
+                String(format: "%.4f", set.loadKg),
+                String(format: "%.4f", set.rir),
+                set.isCompleted ? "1" : "0"
+            ].joined(separator: ":")
+        }.joined(separator: ";")
+
+        return [
+            draft.id.uuidString,
+            draft.exercise.id,
+            draft.plannedExerciseID ?? "-",
+            sets
+        ].joined(separator: "|")
+    }.joined(separator: "||")
 }
