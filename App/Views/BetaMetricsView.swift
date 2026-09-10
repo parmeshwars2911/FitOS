@@ -3,32 +3,57 @@ import SwiftUI
 struct BetaMetricsView: View {
     @EnvironmentObject private var store: AppStore
 
+    private var report: BetaReport { store.betaReport }
+
     var body: some View {
         List {
             Section("Generated workout acceptance") {
                 metric(
                     title: "Exercise acceptance",
-                    value: store.generatedExerciseAcceptanceRate.map { "\(Int(($0 * 100).rounded()))%" } ?? "—",
-                    detail: "Share of planned exercises completed without replacement or skipping."
+                    value: report.exerciseAcceptanceRate.map { "\(Int(($0 * 100).rounded()))%" } ?? "—",
+                    detail: "Accepted planned exercises divided by all planned exercises across generated workouts."
+                )
+                metric(
+                    title: "Generated workouts",
+                    value: String(report.generatedWorkoutCount),
+                    detail: "Completed workouts that originated from a FitOS recommendation."
+                )
+                metric(
+                    title: "Exercise outcomes",
+                    value: "\(report.acceptedExerciseCount) / \(report.plannedExerciseCount)",
+                    detail: "Accepted / planned. Replaced: \(report.replacedExerciseCount) · Skipped: \(report.skippedExerciseCount)."
                 )
             }
 
             Section("Recommendation usefulness") {
-                let summary = store.workoutFeedbackSummary
                 metric(
                     title: "Average rating",
-                    value: summary.averageRating.map { String(format: "%.1f / 5", $0) } ?? "—",
-                    detail: "Across \(summary.ratingCount) rated generated workout\(summary.ratingCount == 1 ? "" : "s")."
+                    value: report.averageUsefulnessRating.map { String(format: "%.1f / 5", $0) } ?? "—",
+                    detail: "Across \(report.ratedWorkoutCount) rated generated workout\(report.ratedWorkoutCount == 1 ? "" : "s")."
                 )
                 metric(
                     title: "Rated 4–5",
-                    value: summary.favorableRate.map { "\(Int(($0 * 100).rounded()))%" } ?? "—",
+                    value: report.favorableWorkoutRate.map { "\(Int(($0 * 100).rounded()))%" } ?? "—",
                     detail: "The beta target is an average usefulness rating of at least 4/5."
                 )
             }
 
+            Section("Share aggregate beta report") {
+                ShareLink(
+                    item: store.betaReportExportJSON,
+                    subject: Text("FitOS beta metrics"),
+                    message: Text("Aggregate FitOS beta metrics from this device. This report excludes individual workout, body, nutrition and HealthKit records.")
+                ) {
+                    Label("Share beta report", systemImage: "square.and.arrow.up")
+                }
+
+                Text("The shared JSON contains app/build version and aggregate counts, rates and feedback-reason totals only. It does not contain workout IDs, exercise IDs, set/load/reps, body measurements, nutrition values, HealthKit data, account details or device identifiers.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section {
-                Text("These metrics are calculated on-device from FitOS workout records. The first beta does not send them to a third-party analytics service.")
+                Text("These metrics are calculated on-device. FitOS does not upload beta analytics automatically; nothing leaves the device until you choose a destination in the system share sheet.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
