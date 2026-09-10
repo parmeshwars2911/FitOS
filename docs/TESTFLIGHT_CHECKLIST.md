@@ -66,6 +66,10 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] Finish stays disabled until at least one set is marked DONE
 - [ ] after editing a workout, swipe-to-dismiss is blocked and Cancel requires destructive discard confirmation
 - [ ] an untouched workout can still be cancelled without a discard warning
+- [ ] force-quit/relaunch during an active workout restores exercise edits, load/reps/RIR and DONE markers
+- [ ] Today shows Resume Workout after an interrupted active session and hides new-workout generation until resume/discard
+- [ ] an unfinished recovered draft does not change training debt or plan adherence until Finish is used
+- [ ] discarding a recovered draft removes it so the next relaunch does not offer Resume Workout
 - [ ] plan-acceptance metric records generated-session outcomes
 - [ ] completed generated session produces a usefulness-rating prompt
 - [ ] Beta Metrics reflects acceptance and workout ratings
@@ -85,6 +89,7 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] importing a valid backup shows counts before any data changes
 - [ ] cancelling import/restore leaves current data untouched
 - [ ] confirmed restore recovers workouts, body data, targets, nutrition, plan metrics, preferences and workout ratings
+- [ ] confirmed local/cloud restore clears any pre-existing active workout draft
 - [ ] unsupported/corrupt backup fails without replacing local data
 - [ ] local backup does not alter Apple Health authorization
 - [ ] Share AI Context opens the system share sheet and sends no data until the user chooses a destination
