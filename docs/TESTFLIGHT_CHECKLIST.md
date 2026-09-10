@@ -93,8 +93,8 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 - [ ] HealthKit context does not silently alter the plan
 
 ### Data portability / AI / support
-- [ ] Export Local Backup creates a readable FitOS JSON file in Files/iCloud Drive
-- [ ] backup warns that the exported file is not encrypted
+- [ ] Export Local Backup creates a readable FitOS JSON file in local Files storage, preferably **On My iPhone**; do not choose iCloud Drive for this beta
+- [ ] backup warns that the exported file is not encrypted and FitOS never uploads it to iCloud automatically
 - [ ] importing a valid backup shows counts before any data changes
 - [ ] cancelling import/restore leaves current data untouched
 - [ ] confirmed restore recovers workouts, body data, targets, nutrition, plan metrics, preferences and workout ratings
@@ -123,7 +123,7 @@ Simulator success is not enough for HealthKit, Files and real gym use. On at lea
 
 FitOS currently uses system-provided networking/security such as `URLSession` HTTPS and Keychain, not proprietary encryption. `ITSAppUsesNonExemptEncryption` is set to `NO` in generated Info.plist settings. Re-evaluate this if a future dependency adds its own cryptography.
 
-The user-exported local backup is plain JSON; it is **not encrypted by FitOS**. This is disclosed in the backup UI. App Store privacy materials should describe the actual beta data flow, not imply that an exported file is protected after the user saves/shares it.
+The user-exported local backup is plain JSON; it is **not encrypted by FitOS**. FitOS does not automatically upload backup files to iCloud. Because this beta uses HealthKit, testers are instructed to keep backup exports in local device storage such as On My iPhone rather than iCloud Drive.
 
 ## Before external TestFlight
 
