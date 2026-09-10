@@ -148,9 +148,6 @@ struct WorkoutLoggerView: View {
             .navigationTitle("Workout")
             .navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(hasUnsavedChanges)
-            .onAppear {
-                persistActiveDraft()
-            }
             .onChange(of: workoutDraftFingerprint(drafts)) { _, _ in
                 persistActiveDraft()
             }
