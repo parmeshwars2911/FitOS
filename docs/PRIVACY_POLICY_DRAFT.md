@@ -73,13 +73,17 @@ Cloud account creation is **disabled in the FitOS 0.1 beta release configuration
 
 FitOS will update this Privacy Policy and complete the required account-deletion and backend privacy/security work before enabling account creation or cloud backup in a public release.
 
-## 7. Analytics, advertising, and sale of data
+## 7. Analytics, beta-report sharing, advertising, and sale of data
 
 The FitOS 0.1 beta does not include a third-party analytics SDK or advertising SDK.
 
 FitOS does not sell your personal information or fitness/health information to advertisers or data brokers.
 
-The beta's recommendation-usefulness and generated-exercise-acceptance metrics are calculated from FitOS data on your device. They are not automatically uploaded to an analytics provider in this release.
+The beta's recommendation-usefulness and generated-exercise-acceptance metrics are calculated from FitOS data on your device. They are not automatically uploaded to FitOS or to an analytics provider in this release.
+
+FitOS includes an explicit **Share beta report** action. If you choose it, FitOS prepares aggregate beta metrics and opens the iOS share sheet. The report can include the FitOS app/build version, counts of completed/generated workouts and planned/accepted/replaced/skipped recommended exercises, aggregate acceptance/usefulness rates, and totals for optional feedback-reason categories.
+
+The aggregate beta report does **not** include individual workout or exercise identifiers, set/load/repetition values, body measurements, nutrition values, Apple Health values, account details, or device identifiers. Nothing is transmitted until you choose a destination in the system share sheet. The destination you choose then handles the report under its own privacy policy.
 
 ## 8. Data retention and deletion
 
