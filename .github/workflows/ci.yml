@@ -25,6 +25,16 @@ jobs:
           grep -q 'NSPrivacyAccessedAPICategoryUserDefaults' App/PrivacyInfo.xcprivacy
           grep -q 'CA92.1' App/PrivacyInfo.xcprivacy
 
+      - name: Validate App Store icon
+        run: |
+          ICON='App/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png'
+          test -f "$ICON"
+          grep -q 'ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon' project.yml
+          grep -q '"filename" : "AppIcon-1024.png"' App/Assets.xcassets/AppIcon.appiconset/Contents.json
+          test "$(sips -g pixelWidth "$ICON" | awk '/pixelWidth/ {print $2}')" = '1024'
+          test "$(sips -g pixelHeight "$ICON" | awk '/pixelHeight/ {print $2}')" = '1024'
+          test "$(sips -g hasAlpha "$ICON" | awk '/hasAlpha/ {print $2}')" = 'no'
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
